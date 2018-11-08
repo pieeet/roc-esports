@@ -1,0 +1,4 @@
+{
+  "GCLOUD_PROJECT": "roc-esports",
+  "DATA_BACKEND": "datastore"
+}

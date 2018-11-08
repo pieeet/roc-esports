@@ -13,4 +13,10 @@
 
 # [START gae_quickstart_yaml]
 runtime: nodejs8
+
+handlers:
+- url: /.*
+  script: auto
+
+instance_class: F2
 # [END gae_quickstart_yaml]

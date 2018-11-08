@@ -1,0 +1,25 @@
+extends layout.pug
+
+block content
+    h2 Voeg admin toe
+    form(action="admin/createadmin" method='POST')
+        .form-group
+            label(for='name') Naam:
+            input#name(type='text', name='name', value='')
+        .form-group
+            label(for='email') E-mail:
+            input#email(type='text', name='email')
+        .form-group
+            button#save-admin-button.btn.btn-success(type="submit") Save
+
+    h2 Admins
+    each admin in admins
+        .media
+            .media-body
+                h4= admin.name
+                p= admin.email
+                button.delete-admin-button.btn.btn-warning(data-admin-id=admin.id) delete
+
+
+    if !admins.length
+        p No admins registered yet
