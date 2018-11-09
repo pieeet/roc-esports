@@ -32,4 +32,4 @@ $(document).ready(function() {
         console.log(id);
         //TODO delete admin
     });
-})
+});

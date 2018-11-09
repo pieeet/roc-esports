@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 
 function getModel() {
     return require(`../data/model-${require('../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
-    // return require('../esports/model-datastore'); // doet hetzelfde
+    // return require('../data/model-datastore'); // doet hetzelfde
 }
 
 // Automatically parse request body as form data
@@ -27,8 +27,6 @@ router.get('/', function (req, res, next) {
             admins: entities
         });
     });
-
-
 });
 
 

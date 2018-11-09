@@ -34,7 +34,8 @@
     "mysql": "2.16.0",
     "nconf": "0.10.0",
     "prompt": "1.0.0",
-    "uglify-js": "3.3.12"
+    "uglify-js": "3.3.12",
+    "body-parser": "latest"
   },
   "devDependencies": {
     "@google-cloud/nodejs-repo-tools": "^2.3.0",

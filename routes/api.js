@@ -5,7 +5,7 @@ const router = express.Router();
 
 function getModel() {
     return require(`../data/model-${require('../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
-    // return require('../esports/model-datastore'); // doet hetzelfde
+    // return require('../data/model-datastore'); // doet hetzelfde
 }
 
 // Set Content-Type for all responses for these routes
