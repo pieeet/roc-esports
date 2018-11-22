@@ -1,11 +1,32 @@
-extends layout
+html
+head
+  title Hello World!
+  link(rel="stylesheet" href="stylesheets/style.css")
+  link(rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans:400,700")
+  link(rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons")
 
+body
+  .button-container
+    a(href="#info" id="button-info") info
 
+  .hero-container
+    .bg
+    .logo
+      h1#roc roc
+      img(id="logo" src="img/logo.png")
+      h3#sub toernooi
+    .intro
+      h3#ctahead Word jij #[span roc kampioen] in #[br] Super Smash Bros Ultimate?
+      a(href="") geef je op!
 
-block content
-  h1= title + ' demo'
-  p
-  | Welcome to #{title} demo. This page is for admins of the roc e-sports league. Log in
-  | with a registered roc-dev account for admission.
+  .info-container
+    .title
 
-
+    .info
+      .general
+        h4#info informatie en veelgestelde vragen
+        p #[span Waar?] Aula van ROC Almere Buiten in gebouw A.
+        p #[span Wanneer?] X december 2019 om x uur.
+        p #[span Hoelang?] Het evenement duurt ongeveer 3 uur.
+        p #[span Wie?] Elke student die een opleiding doet in de techniek, ICT, media en vormgeving of applicatieontwikkeling, kan zich opgeven voor dit evenement.
+        p #[span Selectie] De eerste 64 mensen die zich aanmelden hebben een plek in het tournament. Wacht dus niet de lang!
