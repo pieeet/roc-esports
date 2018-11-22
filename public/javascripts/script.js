@@ -21,11 +21,6 @@ function signOut() {
     });
 }
 
-function getProfile() {
-    return profile;
-}
-
-
 $(document).ready(function() {
     $(".delete-admin-button").click(function() {
         const id = $(this).data("admin-id");
