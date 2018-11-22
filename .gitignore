@@ -3,3 +3,4 @@
 # Node.js dependencies:
 node_modules/
 
+/config.json
