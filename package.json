@@ -15,6 +15,7 @@
   "scripts": {
     "deploy": "gcloud app deploy",
     "start": "node app.js",
+    "set-project": "gcloud config set project roc-esports",
     "lint": "repo-tools lint",
     "pretest": "npm run lint",
     "system-test": "repo-tools test app",
@@ -23,19 +24,22 @@
   },
   "dependencies": {
     "@google-cloud/datastore": "1.3.4",
+    "body-parser": "latest",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "^4.16.3",
+    "express-session": "^1.15.6",
     "http-errors": "~1.6.2",
-    "morgan": "~1.9.0",
-    "pug": "2.0.0-beta11",
-    "yes-https": "0.0.4",
     "lodash": "4.17.11",
+    "morgan": "~1.9.0",
     "mysql": "2.16.0",
     "nconf": "0.10.0",
+    "passport": "0.4.0",
+    "passport-google-oauth20": "1.0.0",
     "prompt": "1.0.0",
+    "pug": "2.0.0-beta11",
     "uglify-js": "3.3.12",
-    "body-parser": "latest"
+    "yes-https": "0.0.4"
   },
   "devDependencies": {
     "@google-cloud/nodejs-repo-tools": "^2.3.0",

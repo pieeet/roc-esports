@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const bodyParser = require('body-parser');
+const oauth2 = require('../lib/oauth2');
+
+// Use the oauth middleware to automatically get the user's profile
+// information and expose login/logout URLs to templates.
+router.use(oauth2.template);
 
 function getModel() {
     return require(`../data/model-${require('../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
@@ -12,7 +17,7 @@ function getModel() {
 router.use(bodyParser.urlencoded({extended: false}));
 
 /* GET admin page. */
-router.get('/', function (req, res, next) {
+router.get('/',oauth2.required, function (req, res, next) {
 
     // how many entities are being loaded
     let nAdmins = 10;

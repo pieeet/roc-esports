@@ -25,11 +25,15 @@ html
                     li
                         a(href="/admin") Admins
 
-        .container
-            block authenticate
-                #gButton.g-signin2(data-onsuccess='onSignIn')
-                #signoutsection
-                    img#profile-pic(src='')
-                    a#signoutLink(href='#', onclick='signOut();') Sign out
+                p.navbar-text.navbar-right
+                    // [START profile]
+                    if profile
+                        if profile.image
+                            img.img-circle(src=profile.image, width=24)
+                        span #{profile.displayName} &nbsp;
+                            a(href=logout) (logout)
+                    else
+                        a(href=login) Login
+                    // [END profile]
 
-            block content
+        block content
