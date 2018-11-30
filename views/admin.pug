@@ -2,6 +2,20 @@ extends layout.pug
 
 block content
     .container
+        h2 teamchat box  
+        .columns
+              .box.column.is-8.is-offset-2
+                h2.title Chatbox
+                .chat-messages.has-text-left
+                  ul#chat-messages
+                form
+                  .field.has-addons
+                    p.control
+                      input(type='text', class='input', value=profile.displayName, id='name')
+                    p.control.is-expanded
+                      input(type='text', class='input', placeholder='Try to say something', id='message')
+                    p.control
+                      input(type='submit', class='button is-success', value='Post')
         h2 Voeg admin toe
         form(action="admin/createadmin" method='POST')
             .form-group

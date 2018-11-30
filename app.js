@@ -1,20 +1,4 @@
-/**
- * Copyright 2017, Google, Inc.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
-//test git
+// App.JS
 
 'use strict';
 
@@ -33,10 +17,18 @@ const apiRouter = require('./routes/api');
 const app = express();
 const config = require('./config');
 
+// Socket .io
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 app.set('trust proxy', true);
+
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}))
 
 app.use(yesHttps());
 //log requests in dev mode
@@ -83,6 +75,22 @@ app.use('/', indexRouter);
 app.use('/admin', adminRouter);
 app.use('/api', apiRouter);
 
+// Socket.IO Chat 
+app.get('/messages', (req, res) => {
+    Message.find({},(err, messages)=> {
+      res.send(messages);
+    })
+  })
+
+  app.post('/messages', (req, res) => {
+    var message = new Message(req.body);
+    message.save((err) =>{
+      if(err)
+        sendStatus(500);
+      res.sendStatus(200);
+    })
+  })
+  
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     next(createError(404));
@@ -100,8 +108,14 @@ app.use(function(err, req, res, next) {
 });
 
 if (module === require.main) {
-    // Start the server
-    const server = app.listen(config.get('PORT'), () => {
+
+    // Socket.IO Connect
+    io.on('connection', () =>{
+        console.log('a user is connected')
+       })
+
+    // Create HTTP server on config port / 3000
+    const server = app.listen(config.get('PORT') || '3000', () => {
         const port = server.address().port;
         console.log(`App test listening on port ${port}`);
     });
