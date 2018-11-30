@@ -27,6 +27,7 @@ router.get('/',oauth2.required, function (req, res, next) {
             return;
         }
 
+
         res.render('admin', {
             title: 'roc-dev esports',
             admins: entities
