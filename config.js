@@ -36,23 +36,8 @@ nconf
     .file({file: path.join(__dirname, 'config.json')})
     // 4. Defaults
     .defaults({
-        // dataBackend can be 'datastore' or 'cloudsql'. Be sure to
-        // configure the appropriate settings for each storage engine below.
-        // If you are unsure, use datastore as it requires no additional
-        // configuration.
-        DATA_BACKEND: 'datastore',
-
-        // This is the id of your project in the Google Cloud Developers Console.
-        GCLOUD_PROJECT: '',
-
-        OAUTH2_CLIENT_ID: '',
-        OAUTH2_CLIENT_SECRET: '',
-        OAUTH2_CALLBACK: 'http://localhost:3000/auth/google/callback',
-
-        MYSQL_USER: '',
-        MYSQL_PASSWORD: '',
-
-        PORT: 3000,
+        
+        //Cookie
         SECRET: 'keyboardcat'
 
     });
