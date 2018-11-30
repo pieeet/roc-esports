@@ -33,14 +33,8 @@ nconf
         'SECRET'
     ])
     // 3. Config file
-    .file({file: path.join(__dirname, 'config.json')})
-    // 4. Defaults
-    .defaults({
-        
-        //Cookie
-        SECRET: 'keyboardcat'
+    .file({file: path.join(__dirname, 'config.json')});
 
-    });
 
 // Check for required settings
 checkConfig('GCLOUD_PROJECT');
