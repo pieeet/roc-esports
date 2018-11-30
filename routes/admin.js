@@ -19,15 +19,23 @@ router.use(bodyParser.urlencoded({extended: false}));
 /* GET admin page. */
 router.get('/',oauth2.required, function (req, res, next) {
 
-    // how many entities are being loaded
-    let nAdmins = 10;
-    getModel().listAdmins(nAdmins, req.query.pageToken, (err, entities, cursor) => {
+    // check if user is admin
+    getModel().listAdmins(null, null, (err, entities, cursor) => {
         if (err) {
             next(err);
             return;
         }
+        let emailUser = req.user.email;
+        let isAdmin = false;
 
-
+        for (let i = 0; i < entities.length; i++) {
+            if (emailUser === entities[i].email) {
+                isAdmin = true;
+            }
+        }
+        if (!isAdmin) {
+            return res.redirect('/auth/logout');
+        }
         res.render('admin', {
             title: 'roc-dev esports',
             admins: entities
