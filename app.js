@@ -11,9 +11,9 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
-const indexRouter = require('./routes/index');
-const adminRouter = require('./routes/admin');
-const apiRouter = require('./routes/api');
+const indexRouter = require('./server/routes/index');
+const adminRouter = require('./server/routes/admin');
+const apiRouter = require('./server/routes/api');
 const app = express();
 const config = require('./config');
 
@@ -22,7 +22,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join('client/views'));
 app.set('view engine', 'pug');
 app.set('trust proxy', true);
 
@@ -36,7 +36,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join('client/public')));
 
 // [START session]
 // Configure the session and session storage.
@@ -68,7 +68,7 @@ app.use(session(sessionConfig));
 // OAuth2
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(require('./lib/oauth2').router);
+app.use(require('./server/lib/oauth2').router);
 
 //routers
 app.use('/', indexRouter);
