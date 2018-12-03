@@ -51,7 +51,7 @@ router.use((req, res, next) => {
 });
 
 //add admin to datastore
-router.post('/createadmin', function (req, res, next) {
+router.post('/createadmin' ,oauth2.required, function (req, res, next) {
     const data = req.body;
     getModel().createAdmin(data, (err, savedData) => {
         if (err) {
