@@ -1,0 +1,9 @@
+{
+  "GCLOUD_PROJECT": "[your-gcloud-project-id]",
+  "DATA_BACKEND": "datastore",
+  "OAUTH2_CLIENT_ID": "[your oauth client id]",
+  "OAUTH2_CLIENT_SECRET": "[your oauth client secret]",
+  "OAUTH2_CALLBACK": "http://localhost:3000/auth/google/callback",
+  "CLOUD_BUCKET": "[your cloud bucket name",
+  "SECRET": "[your session secret]"
+}
