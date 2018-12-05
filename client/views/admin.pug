@@ -28,13 +28,14 @@ block content
                 button#save-admin-button.btn.btn-success(type="submit") Save
 
         h2 Admins
-        each admin in admins
-            .media
-                .media-body
-                    h4= admin.name
-                    p= admin.email
-                    button.delete-admin-button.btn.btn-warning(data-admin-id=admin.id) delete
+        if admins
+            each admin in admins
+                .media
+                    .media-body
+                        h4= admin.name
+                        p= admin.email
+                        button.delete-admin-button.btn.btn-warning(data-admin-id=admin.id) delete
 
 
-        if !admins.length
-            p No admins registered yet
+        else if !admins || !admins.length
+                p No admins registered yet

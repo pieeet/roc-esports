@@ -21,7 +21,7 @@ function extractProfile (profile) {
 }
 
 function getModel() {
-    return require(`../data/model-${require('../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
+    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
 }
 
 // Configure the Google strategy for use by Passport.js.

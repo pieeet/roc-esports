@@ -1,9 +1,10 @@
 {
-  "GCLOUD_PROJECT": "[your-gcloud-project-id]",
+  "GCLOUD_PROJECT": "roc-esports",
   "DATA_BACKEND": "datastore",
-  "OAUTH2_CLIENT_ID": "[your oauth client id]",
-  "OAUTH2_CLIENT_SECRET": "[your oauth client secret]",
-  "OAUTH2_CALLBACK": "http://localhost:3000/auth/google/callback",
-  "CLOUD_BUCKET": "[your cloud bucket name",
-  "SECRET": "[your session secret]"
+  "OAUTH2_CLIENT_ID": "208491198563-1efffitibhbqkb7sggbhdfklqqin8g0r.apps.googleusercontent.com",
+  "OAUTH2_CLIENT_SECRET": "0XcR4GNOOIepXO62SPFZV6SC",
+  "OAUTH2_CALLBACK": "http://roc-esports.appspot.com/auth/google/callback",
+  "CLOUD_BUCKET": "roc-esports-bucket",
+  "SECRET": "keyboardcat"
+
 }

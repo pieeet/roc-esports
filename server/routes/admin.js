@@ -9,7 +9,7 @@ const oauth2 = require('../lib/oauth2');
 router.use(oauth2.template);
 
 function getModel() {
-    return require(`../data/model-${require('../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
+    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
     // return require('../data/model-datastore'); // doet hetzelfde
 }
 
@@ -17,7 +17,7 @@ function getModel() {
 router.use(bodyParser.urlencoded({extended: false}));
 
 /* GET admin page. */
-router.get('/',oauth2.required, function (req, res, next) {
+router.get('/', oauth2.required, function (req, res, next) {
 
     // check if user is admin
     getModel().listAdmins(null, null, (err, entities, cursor) => {
@@ -51,7 +51,7 @@ router.use((req, res, next) => {
 });
 
 //add admin to datastore
-router.post('/createadmin' ,oauth2.required, function (req, res, next) {
+router.post('/createadmin', oauth2.required, function (req, res, next) {
     const data = req.body;
     getModel().createAdmin(data, (err, savedData) => {
         if (err) {

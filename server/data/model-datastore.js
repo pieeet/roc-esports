@@ -1,7 +1,7 @@
 'use strict';
 
 const Datastore = require('@google-cloud/datastore');
-const config = require('../config');
+const config = require('../../config');
 
 // [START config]
 const ds = Datastore({
