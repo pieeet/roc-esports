@@ -16,30 +16,41 @@ function getModel() {
 // Automatically parse request body as form data
 router.use(bodyParser.urlencoded({extended: false}));
 
-/* GET admin page. */
-router.get('/', oauth2.required, function (req, res, next) {
-
-    // check if user is admin
+function checkIfAdmin(email, cb) {
     getModel().listAdmins(null, null, (err, entities, cursor) => {
         if (err) {
             next(err);
             return;
         }
-        let emailUser = req.user.email;
         let isAdmin = false;
-
         for (let i = 0; i < entities.length; i++) {
-            if (emailUser === entities[i].email) {
+            if (email === entities[i].email) {
                 isAdmin = true;
             }
         }
-        if (!isAdmin) {
+        cb(null, isAdmin);
+    });
+}
+
+/* GET admin page. */
+router.get('/', oauth2.required, (req, res, next) => {
+    checkIfAdmin(req.user.email, (err, isAdmin) => {
+        if (isAdmin) {
+            // get admins
+            getModel().listAdmins(null, null, (err, entities, cursor) => {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                res.render('admin', {
+                    title: 'roc-dev esports',
+                    admins: entities
+                });
+
+            });
+        } else {
             return res.redirect('/auth/logout');
         }
-        res.render('admin', {
-            title: 'roc-dev esports',
-            admins: entities
-        });
     });
 });
 
@@ -52,15 +63,22 @@ router.use((req, res, next) => {
 
 //add admin to datastore
 router.post('/createadmin', oauth2.required, function (req, res, next) {
-    const data = req.body;
-    getModel().createAdmin(data, (err, savedData) => {
-        if (err) {
-            next(err);
-            return;
+    checkIfAdmin(req.user.email, (err, isAdmin) => {
+        if (isAdmin) {
+            // const data = req.body;
+            let data = {};
+            data.name = req.body.name;
+            data.email = req.body.email;
+            data.added_by = req.user.displayName;
+            data.date_added = new Date();
+            getModel().createAdmin(data, (err, savedData) => {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                res.redirect("/admin");
+            });
         }
-        res.redirect("/admin");
     });
 });
-
-
 module.exports = router;
