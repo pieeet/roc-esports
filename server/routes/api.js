@@ -3,6 +3,11 @@
 const express = require('express');
 const router = express.Router();
 
+var cors = require('cors');
+
+router.use(cors());
+
+
 function getModel() {
     return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
     // return require('../data/model-datastore'); // doet hetzelfde
