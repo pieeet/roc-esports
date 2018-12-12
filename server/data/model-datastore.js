@@ -89,12 +89,26 @@ function listAdmins (limit, token, cb) {
 }
 // [END list]
 
+// [START delete admin]
+
+
+function _delete (id, cb) {
+    const key = ds.key([KIND_ADMIN, parseInt(id, 10)]);
+    ds.delete(key, cb);
+}
+
+
+//[END delete admin]
+
+
+
+
 // [START exports]
 module.exports = {
     createAdmin,
     // read,
     // updateAdmin
-    // delete: _delete,
+    delete: _delete,
     listAdmins
 };
 // [END exports]

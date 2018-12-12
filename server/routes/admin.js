@@ -62,7 +62,7 @@ router.use((req, res, next) => {
 });
 
 //add admin to datastore
-router.post('/createadmin', oauth2.required, function (req, res, next) {
+router.post('/createadmin', oauth2.required, (req, res, next) => {
     checkIfAdmin(req.user.email, (err, isAdmin) => {
         if (isAdmin) {
             // const data = req.body;
@@ -76,9 +76,24 @@ router.post('/createadmin', oauth2.required, function (req, res, next) {
                     next(err);
                     return;
                 }
-                res.redirect("/admin");
+                res.redirect(req.baseUrl);
             });
         }
     });
 });
+// delete admin from datastore
+router.get('/:admin/deleteadmin',oauth2.required, (req, res, next) => {
+    checkIfAdmin(req.user.email, (err, isAdmin) => {
+        if (isAdmin) {
+            getModel().delete(req.params.admin, (err) => {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                res.redirect(req.baseUrl);
+            });
+        }
+    });
+});
+
 module.exports = router;

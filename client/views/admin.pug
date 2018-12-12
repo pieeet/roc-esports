@@ -34,7 +34,8 @@ block content
                     .media-body
                         h4= admin.name
                         p= admin.email
-                        button.delete-admin-button.btn.btn-warning(data-admin-id=admin.id) delete
+                        a(href=`/admin/${admin.id}/deleteadmin`, class='btn btn-warning btn-sm')
+                            i.glyphicon.glyphicon-trash
 
 
         else if !admins || !admins.length
