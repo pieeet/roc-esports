@@ -20,12 +20,12 @@ router.use((req, res, next) => {
 });
 
 /**
- * GET /api/admins
+ * GET /api/getadmins
  * mainly for testing purposes
- * Retrieve a page with admins in json format up to ten at a time).
+ * Retrieve a page with admins in json format.
  */
 router.get('/getAdmins', (req, res, next) => {
-    //return 10 admins in json format
+    //return admins in json format
     getModel().listAdmins(null, null, (err, entities, cursor) => {
         if (err) {
             next(err);
