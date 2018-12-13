@@ -1,4 +1,5 @@
 const express = require('express');
+const images = require('../lib/images');
 const router = express.Router();
 
 const bodyParser = require('body-parser');
@@ -41,21 +42,29 @@ router.use((req, res, next) => {
 });
 
 //add admin to datastore
-router.post('/createadmin', oauth2.required, adminauth.required, (req, res, next) => {
-    const data = req.body;
-    // let data = {};
-    // data.name = req.body.name;
-    // data.email = req.body.email;
-    // data.added_by = req.user.displayName;
-    // data.date_added = new Date();
-    getModel().createAdmin(data, (err, savedData) => {
-        if (err) {
-            next(err);
-            return;
+router.post('/createadmin',
+    oauth2.required,
+    adminauth.required,
+    images.multer.single('image'),
+    images.sendUploadToGCS,
+    (req, res, next) => {
+        const data = req.body;
+
+        // Was an image uploaded? If so, we'll use its public URL
+        // in cloud storage.
+        if (req.file && req.file.cloudStoragePublicUrl) {
+            data.imageUrl = req.file.cloudStoragePublicUrl;
         }
-        res.redirect(req.baseUrl);
-    });
+
+        getModel().createAdmin(data, (err, savedData) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            res.redirect(req.baseUrl);
+        });
 });
+
 // delete admin from datastore
 router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res, next) => {
     getModel().delete(req.params.admin, (err) => {
@@ -81,15 +90,25 @@ router.get('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res
 });
 
 //update admin to datastore with post request
-router.post('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res, next) => {
-    const data = req.body;
-    const id = req.params.admin;
-    getModel().updateAdmin(id, data, (err, savedData) => {
-        if (err) {
-            next(err);
-            return;
+router.post('/:admin/updateadmin',
+    oauth2.required,
+    adminauth.required,
+    images.multer.single('image'),
+    images.sendUploadToGCS,
+    (req, res, next) => {
+        const data = req.body;
+        const id = req.params.admin;
+        // Was an image uploaded? If so, we'll use its public URL
+        // in cloud storage.
+        if (req.file && req.file.cloudStoragePublicUrl) {
+            req.body.imageUrl = req.file.cloudStoragePublicUrl;
         }
-        res.redirect('/admin');
+        getModel().updateAdmin(id, data, (err, savedData) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            res.redirect('/admin');
     });
 });
 

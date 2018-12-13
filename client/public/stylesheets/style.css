@@ -32,6 +32,12 @@ input {
   height: 50px;
 }
 
+.admin-profile-pic {
+  width: 60px;
+  height: 60px;
+  margin-top: 20px;
+}
+
 
 /* [START CSS Lucas]*/
 
