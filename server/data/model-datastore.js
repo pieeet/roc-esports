@@ -41,6 +41,7 @@ function updateAdmin (id, data, cb) {
     if (id) {
         // parse existing id, 10 indicates it's a decimal number (radix)
         key = ds.key([KIND_ADMIN, parseInt(id, 10)]);
+
     } else {
         // new entity in datastore makes a new id.
         key = ds.key(KIND_ADMIN);
@@ -90,24 +91,35 @@ function listAdmins (limit, token, cb) {
 // [END list]
 
 // [START delete admin]
-
-
 function _delete (id, cb) {
     const key = ds.key([KIND_ADMIN, parseInt(id, 10)]);
     ds.delete(key, cb);
 }
-
-
 //[END delete admin]
 
-
+function readAdmin (id, cb) {
+    const key = ds.key([KIND_ADMIN, parseInt(id, 10)]);
+    ds.get(key, (err, entity) => {
+        if (!err && !entity) {
+            err = {
+                code: 404,
+                message: 'Not found'
+            };
+        }
+        if (err) {
+            cb(err);
+            return;
+        }
+        cb(null, fromDatastore(entity));
+    });
+}
 
 
 // [START exports]
 module.exports = {
     createAdmin,
-    // read,
-    // updateAdmin
+    readAdmin,
+    updateAdmin,
     delete: _delete,
     listAdmins
 };

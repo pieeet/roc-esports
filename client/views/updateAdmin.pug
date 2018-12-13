@@ -1,0 +1,14 @@
+extends layout.pug
+
+block content
+    .container
+        h2 Update admin
+        form(action=`/admin/${admin.id}/updateadmin` method='POST')
+            .form-group
+                label(for='name') Naam:
+                input#name(type='text', name='name', value=admin.name)
+            .form-group
+                label(for='email') E-mail:
+                input#email(type='text', name='email' value=admin.email)
+            .form-group
+                button#update-admin-button.btn.btn-success(type="submit") Update

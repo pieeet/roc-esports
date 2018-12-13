@@ -42,12 +42,12 @@ router.use((req, res, next) => {
 
 //add admin to datastore
 router.post('/createadmin', oauth2.required, adminauth.required, (req, res, next) => {
-    // const data = req.body;
-    let data = {};
-    data.name = req.body.name;
-    data.email = req.body.email;
-    data.added_by = req.user.displayName;
-    data.date_added = new Date();
+    const data = req.body;
+    // let data = {};
+    // data.name = req.body.name;
+    // data.email = req.body.email;
+    // data.added_by = req.user.displayName;
+    // data.date_added = new Date();
     getModel().createAdmin(data, (err, savedData) => {
         if (err) {
             next(err);
@@ -64,6 +64,32 @@ router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res
             return;
         }
         res.redirect(req.baseUrl);
+    });
+});
+
+// reads admin and redirects to update form
+router.get('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res, next) => {
+    getModel().readAdmin(req.params.admin, (err, entity) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        res.render('updateAdmin', {
+            admin: entity
+        });
+    });
+});
+
+//update admin to datastore with post request
+router.post('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res, next) => {
+    const data = req.body;
+    const id = req.params.admin;
+    getModel().updateAdmin(id, data, (err, savedData) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        res.redirect('/admin');
     });
 });
 
