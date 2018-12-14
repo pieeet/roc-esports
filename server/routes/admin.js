@@ -41,6 +41,17 @@ router.use((req, res, next) => {
     next();
 });
 
+router.get('/createadmin',
+    oauth2.required,
+    adminauth.required,
+    (req, res, next) => {
+
+        res.render('adminform.pug', {
+            admin: {},
+            action: 'Add'
+        });
+    });
+
 //add admin to datastore
 router.post('/createadmin',
     oauth2.required,
@@ -63,7 +74,7 @@ router.post('/createadmin',
             }
             res.redirect(req.baseUrl);
         });
-});
+    });
 
 // delete admin from datastore
 router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res, next) => {
@@ -77,20 +88,21 @@ router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res
 });
 
 // reads admin and redirects to update form
-router.get('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res, next) => {
+router.get('/:admin/createadmin', oauth2.required, adminauth.required, (req, res, next) => {
     getModel().readAdmin(req.params.admin, (err, entity) => {
         if (err) {
             next(err);
             return;
         }
-        res.render('updateAdmin', {
-            admin: entity
+        res.render('adminform.pug', {
+            admin: entity,
+            action: 'Update'
         });
     });
 });
 
 //update admin to datastore with post request
-router.post('/:admin/updateadmin',
+router.post('/:admin/createadmin',
     oauth2.required,
     adminauth.required,
     images.multer.single('image'),
@@ -109,7 +121,7 @@ router.post('/:admin/updateadmin',
                 return;
             }
             res.redirect('/admin');
+        });
     });
-});
 
 module.exports = router;

@@ -10,10 +10,13 @@ a {
   color: #00B7FF;
 }
 
-label, input {
+label, input, .media {
   padding: .5em;
-  margin-right: .5em;
   width: 50%;
+}
+
+.media {
+  border: 1px solid black;
 }
 
 
@@ -37,6 +40,7 @@ input {
   height: 60px;
   margin-top: 20px;
 }
+
 
 
 /* [START CSS Lucas]*/

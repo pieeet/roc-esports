@@ -2,8 +2,8 @@ extends layout.pug
 
 block content
     .container
-        h2 Update admin
-        form(action=`/admin/${admin.id}/updateadmin` method='POST')
+        h2 #{action} admin
+        form(method='POST' , enctype="multipart/form-data")
             .form-group
                 label(for='name') Naam:
                 input#name(type='text', name='name', value=admin.name)
@@ -11,10 +11,10 @@ block content
                 label(for='email') E-mail:
                 input#email(type='text', name='email' value=admin.email)
             .form-group
-                label(for="image") Cover Image
+                label(for="image") Profile image
                 input.form-control(type="file", name="image", id="image")
             .form-group.hidden
                 label(for="imageUrl") Cover Image URL
                 input.form-control(type="text", name="imageUrl", id="imageUrl", value=admin.imageUrl)
             .form-group
-                button#update-admin-button.btn.btn-success(type="submit") Update
+                button#update-admin-button.btn.btn-success(type="submit") #{action}
