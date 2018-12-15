@@ -78,7 +78,7 @@ router.post('/createadmin',
 
 // delete admin from datastore
 router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().delete(req.params.admin, (err) => {
+    getModel().deleteAdmin(req.params.admin, (err) => {
         if (err) {
             next(err);
             return;
