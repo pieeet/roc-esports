@@ -88,7 +88,7 @@ router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res
 });
 
 // reads admin and redirects to update form
-router.get('/:admin/createadmin', oauth2.required, adminauth.required, (req, res, next) => {
+router.get('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res, next) => {
     getModel().readAdmin(req.params.admin, (err, entity) => {
         if (err) {
             next(err);
@@ -102,7 +102,7 @@ router.get('/:admin/createadmin', oauth2.required, adminauth.required, (req, res
 });
 
 //update admin to datastore with post request
-router.post('/:admin/createadmin',
+router.post('/:admin/updateadmin',
     oauth2.required,
     adminauth.required,
     images.multer.single('image'),
