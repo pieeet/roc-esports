@@ -10,6 +10,7 @@ const ds = Datastore({
 // [END config]
 
 const KIND_ADMIN = "Admin";
+const KIND_GAME = "Game";
 
 function fromDatastore (obj) {
     obj.id = obj[Datastore.KEY].id;
@@ -114,6 +115,75 @@ function readAdmin (id, cb) {
     });
 }
 
+function readGame (id, cb) {
+    const key = ds.key([KIND_GAME, parseInt(id, 10)]);
+    ds.get(key, (err, entity) => {
+        if (!err && !entity) {
+            err = {
+                code: 404,
+                message: 'Not found'
+            };
+        }
+        if (err) {
+            cb(err);
+            return;
+        }
+        cb(null, fromDatastore(entity));
+    });
+}
+
+function updateGame (id, data, cb) {
+    let key;
+    if (id) {
+        // parse existing id, 10 indicates it's a decimal number (radix)
+        key = ds.key([KIND_GAME, parseInt(id, 10)]);
+
+    } else {
+        // new entity in datastore makes a new id.
+        key = ds.key(KIND_GAME);
+    }
+
+    const entity = {
+        key: key,
+        // array with non-indexed fields
+        data: toDatastore(data, [])
+    };
+
+    ds.save(
+        entity,
+        (err) => {
+            data.id = entity.key.id;
+            cb(err, err ? null : data);
+        }
+    );
+}
+// [END update]
+
+function createGame (data, cb) {
+    updateGame(null, data, cb);
+}
+
+function _deleteGame (id, cb) {
+    const key = ds.key([KIND_GAME, parseInt(id, 10)]);
+    ds.delete(key, cb);
+}
+
+function listGames (limit, token, cb) {
+    const q = ds.createQuery([KIND_GAME])
+        .limit(limit)
+        .order('name')
+        .start(token);
+
+    ds.runQuery(q, (err, entities, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
+        cb(null, entities.map(fromDatastore), hasMore);
+    });
+}
+
 
 // [START exports]
 module.exports = {
@@ -121,6 +191,11 @@ module.exports = {
     readAdmin,
     updateAdmin,
     deleteAdmin: _deleteAdmin,
-    listAdmins
+    listAdmins,
+    createGame,
+    readGame,
+    updateGame,
+    deletGame: _deleteGame,
+    listGames
 };
 // [END exports]

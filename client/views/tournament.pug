@@ -1,0 +1,40 @@
+extends layout.pug
+
+block content
+    .container
+
+        h2 Games
+        a(href="/admin/creategame", class='btn btn-success btn-sm')
+            i.glyphicon.glyphicon-plus
+            span  Add game
+        if games.length
+            each game in games
+                .media
+                    .media-left
+                        img(src=game.imageUrl ||
+                        "/img/male-profile-pic-placeholder.png")
+                    .media-body
+                        h4= game.name
+                        a(href=`/admin/${game.id}/deletegame`, class='btn btn-warning')
+                            i.glyphicon.glyphicon-trash
+                        a(href=`/admin/${game.id}/updategame`, class='btn btn-warning')
+                            i.glyphicon.glyphicon-edit
+        else
+            h3 No games yet. Add a game.
+
+        h2 Add Tournament
+        form(method='POST' , enctype="multipart/form-data")
+            .form-group
+                label(for='name') Naam:
+                input#name(type='text', name='name', value=admin.name)
+            .form-group
+                label(for='email') E-mail:
+                input#email(type='text', name='email' value=admin.email)
+            .form-group
+                label(for="image") Profile image
+                input.form-control(type="file", name="image", id="image")
+            .form-group.hidden
+                label(for="imageUrl") Cover Image URL
+                input.form-control(type="text", name="imageUrl", id="imageUrl", value=admin.imageUrl)
+            .form-group
+                button#update-admin-button.btn.btn-success(type="submit") Add tournament

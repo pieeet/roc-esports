@@ -1,0 +1,17 @@
+extends layout.pug
+
+block content
+    .container
+        h2 #{action} Game
+        form(method='POST', enctype="multipart/form-data")
+            .form-group
+                label(for='game-name') Name:
+                input#game-name(type='text', name='name', value=game.name)
+            .form-group
+                label(for="game-image") Game image
+                input#game-image.form-control(type="file", name="image")
+            .form-group.hidden
+                label(for="imageUrl") Game Image URL
+                input#imageUrl.form-control(type="text", name="imageUrl",  value=game.imageUrl)
+            .form-group
+                button#add-game-button.btn.btn-success(type='submit') #{action} game
