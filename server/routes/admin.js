@@ -139,13 +139,29 @@ router.get('/tournaments',
                 return;
             }
             games = gameEntities;
-            res.render('tournament.pug', {
-                games: games,
-                tournaments: tournaments,
-                admin: {}
+            getModel().listTournaments(null, null, (err, tournamentEntities, cursor) => {
+                tournaments = tournamentEntities;
+                // add game to tournament. Since we already have the games, no need to call database
+                for (let i = 0; i < tournaments.length; i++) {
+                    let tournament = tournaments[i];
+                    for (let j = 0; j < games.length; j++) {
+                        let game = games[j];
+                        if (tournament.game === game.id) {
+                            tournament.game = game;
+                        }
+                    }
+                }
+                if (err) {
+                    next(err);
+                    return;
+                }
+                res.render('tournament.pug', {
+                    games: games,
+                    tournaments: tournaments,
+                    admin: {}
+                });
             });
         });
-
     }
 );
 // [START GAMES]
@@ -181,7 +197,7 @@ router.post('/creategame',
             }
             res.redirect('/admin/tournaments');
         });
-});
+    });
 
 // reads admin and redirects to update form
 router.get('/:game/updategame', oauth2.required, adminauth.required, (req, res, next) => {
@@ -231,8 +247,42 @@ router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, 
         res.redirect('/admin/tournaments');
     });
 });
-
-
 // [END GAMES]
+
+router.get('/createtournament',
+    oauth2.required,
+    adminauth.required,
+    (req, res, next) => {
+        getModel().listGames(null, null, (err, gameEntities, cursor) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            res.render('tournamentform.pug', {
+                games: gameEntities,
+                action: "Add",
+                admin: {}
+            });
+        });
+    }
+);
+
+router.post('/createtournament',
+    oauth2.required,
+    adminauth.required,
+    (req, res, next) => {
+        const data = req.body;
+        getModel().createTournament(data, (err, savedData) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            res.redirect('/admin/tournaments');
+        });
+    }
+);
+
+//TODO update and delete tournament
+
 // [END TOURNAMENTS]
 module.exports = router;

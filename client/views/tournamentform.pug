@@ -1,0 +1,30 @@
+extends layout.pug
+
+block content
+    .container
+        h2 #{action} Tournament
+        form(method='POST')
+            .form-group
+                label(for='game') Game:
+                select#game(name='game')
+                    option(value='-1') Choose game...
+                    each gm in games
+                        option(value=gm.id) #{gm.name}
+            .form-group
+                label(for='date') Date:
+                input#date.form-control(type='date', name='date')
+
+            .form-group
+                label(for="starttime") Start time
+                input#starttime.form-control(type="time", name="starttime" value='12:00')
+
+            .form-group
+                label(for="endtime") End time
+                input#endtime.form-control(type="time", name="endtime" value='12:00')
+
+            .form-group
+                label(for=location) Location
+                input#location.form-control(type='text', name='location')
+
+            .form-group
+                button#update-tournament-button.btn.btn-success(type="submit") #{action} tournament

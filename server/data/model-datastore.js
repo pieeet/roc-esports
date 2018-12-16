@@ -11,6 +11,7 @@ const ds = Datastore({
 
 const KIND_ADMIN = "Admin";
 const KIND_GAME = "Game";
+const KIND_TOURNAMENT = "Tournament";
 
 function fromDatastore (obj) {
     obj.id = obj[Datastore.KEY].id;
@@ -184,6 +185,53 @@ function listGames (limit, token, cb) {
     });
 }
 
+function updateTournament (id, data, cb) {
+    let key;
+    if (id) {
+        // parse existing id, 10 indicates it's a decimal number (radix)
+        key = ds.key([KIND_TOURNAMENT, parseInt(id, 10)]);
+
+    } else {
+        // new entity in datastore makes a new id.
+        key = ds.key(KIND_TOURNAMENT);
+    }
+
+    const entity = {
+        key: key,
+        // array with non-indexed fields
+        data: toDatastore(data, [])
+    };
+
+    ds.save(
+        entity,
+        (err) => {
+            data.id = entity.key.id;
+            cb(err, err ? null : data);
+        }
+    );
+}
+// [END update]
+
+function createTournament (data, cb) {
+    updateTournament(null, data, cb);
+}
+
+function listTournaments (limit, token, cb) {
+    const q = ds.createQuery([KIND_TOURNAMENT])
+        .limit(limit)
+        .order('date')
+        .start(token);
+
+    ds.runQuery(q, (err, entities, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
+        cb(null, entities.map(fromDatastore), hasMore);
+    });
+}
+
 
 // [START exports]
 module.exports = {
@@ -196,6 +244,9 @@ module.exports = {
     readGame,
     updateGame,
     deleteGame: _deleteGame,
-    listGames
+    listGames,
+    createTournament,
+    updateTournament,
+    listTournaments
 };
 // [END exports]
