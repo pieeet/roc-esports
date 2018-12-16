@@ -195,7 +195,7 @@ module.exports = {
     createGame,
     readGame,
     updateGame,
-    deletGame: _deleteGame,
+    deleteGame: _deleteGame,
     listGames
 };
 // [END exports]

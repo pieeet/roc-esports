@@ -133,12 +133,12 @@ router.get('/tournaments',
     adminauth.required, (req, res, next) => {
         let games = {};
         let tournaments = {};
-        getModel().listGames(null, null, (err, entities, cursor) => {
+        getModel().listGames(null, null, (err, gameEntities, cursor) => {
             if (err) {
                 next(err);
                 return;
             }
-            games = entities;
+            games = gameEntities;
             res.render('tournament.pug', {
                 games: games,
                 tournaments: tournaments,
