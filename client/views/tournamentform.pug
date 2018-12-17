@@ -12,19 +12,28 @@ block content
                         option(value=gm.id) #{gm.name}
             .form-group
                 label(for='date') Date:
-                input#date.form-control(type='date', name='date')
+                input#date.form-control(type='date', name='date' value=tournament.date)
 
             .form-group
                 label(for="starttime") Start time
-                input#starttime.form-control(type="time", name="starttime" value='12:00')
+                input#starttime.form-control(type="time", name="starttime" value=tournament.starttime || '12:00')
 
             .form-group
                 label(for="endtime") End time
-                input#endtime.form-control(type="time", name="endtime" value='12:00')
+                input#endtime.form-control(type="time", name="endtime" value=tournament.endtime || '15:00')
 
             .form-group
                 label(for=location) Location
-                input#location.form-control(type='text', name='location')
+                input#location.form-control(type='text', name='location' value=tournament.location)
 
             .form-group
                 button#update-tournament-button.btn.btn-success(type="submit") #{action} tournament
+        p#gameid.hidden= tournament.game
+
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                let gameid = $('#gameid').text();
+                $("select#game").val(gameid);
+            }
+        );

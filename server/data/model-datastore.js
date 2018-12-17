@@ -185,6 +185,46 @@ function listGames (limit, token, cb) {
     });
 }
 
+
+// [END update]
+
+function createTournament (data, cb) {
+    updateTournament(null, data, cb);
+}
+
+function listTournaments (limit, token, cb) {
+    const q = ds.createQuery([KIND_TOURNAMENT])
+        .limit(limit)
+        .order('date')
+        .start(token);
+
+    ds.runQuery(q, (err, entities, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
+        cb(null, entities.map(fromDatastore), hasMore);
+    });
+}
+
+function readTournament (id, cb) {
+    const key = ds.key([KIND_TOURNAMENT, parseInt(id, 10)]);
+    ds.get(key, (err, entity) => {
+        if (!err && !entity) {
+            err = {
+                code: 404,
+                message: 'Not found'
+            };
+        }
+        if (err) {
+            cb(err);
+            return;
+        }
+        cb(null, fromDatastore(entity));
+    });
+}
+
 function updateTournament (id, data, cb) {
     let key;
     if (id) {
@@ -210,43 +250,34 @@ function updateTournament (id, data, cb) {
         }
     );
 }
-// [END update]
 
-function createTournament (data, cb) {
-    updateTournament(null, data, cb);
-}
-
-function listTournaments (limit, token, cb) {
-    const q = ds.createQuery([KIND_TOURNAMENT])
-        .limit(limit)
-        .order('date')
-        .start(token);
-
-    ds.runQuery(q, (err, entities, nextQuery) => {
-        if (err) {
-            cb(err);
-            return;
-        }
-        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
-        cb(null, entities.map(fromDatastore), hasMore);
-    });
+function _deleteTournament (id, cb) {
+    const key = ds.key([KIND_TOURNAMENT, parseInt(id, 10)]);
+    ds.delete(key, cb);
 }
 
 
 // [START exports]
 module.exports = {
+    //Admin
     createAdmin,
     readAdmin,
     updateAdmin,
     deleteAdmin: _deleteAdmin,
     listAdmins,
+
+    //Game
     createGame,
     readGame,
     updateGame,
     deleteGame: _deleteGame,
     listGames,
+
+    //Tournament
     createTournament,
+    readTournament,
     updateTournament,
+    deleteTournament: _deleteTournament,
     listTournaments
 };
 // [END exports]

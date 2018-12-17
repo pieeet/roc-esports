@@ -10,23 +10,14 @@ a {
   color: #00B7FF;
 }
 
-label, input, .media {
+label, input, .media, form {
   padding: .5em;
-  width: 50%;
+  width: 100%;
+  max-width: 400px;
 }
 
 .media {
   border: 1px solid black;
-}
-
-form {
-  max-width: 400px;
-}
-
-input {
-  border: 1px solid black;
-  display: block;
-  margin: 10px;
 }
 
 #signoutsection {

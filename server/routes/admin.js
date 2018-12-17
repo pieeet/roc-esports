@@ -282,7 +282,67 @@ router.post('/createtournament',
     }
 );
 
-//TODO update and delete tournament
+// reads admin and redirects to update form
+router.get('/:tournament/updatetournament', oauth2.required, adminauth.required, (req, res, next) => {
+    let tournament = {};
+    let games = {};
+    getModel().readTournament(req.params.tournament, (err, entity) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        tournament = entity;
+        getModel().listGames(null, null, (err, gameEntities, cursor) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            res.render('tournamentform.pug', {
+                games: gameEntities,
+                action: "Update",
+                tournament: tournament,
+                admin: {}
+            });
+        });
+    });
+});
+
+//update admin to datastore with post request
+router.post('/:tournament/updatetournament',
+    oauth2.required,
+    adminauth.required,
+    images.multer.single('image'),
+    images.sendUploadToGCS,
+    (req, res, next) => {
+        const data = req.body;
+        const id = req.params.tournament;
+        // Was an image uploaded? If so, we'll use its public URL
+        // in cloud storage.
+        if (req.file && req.file.cloudStoragePublicUrl) {
+            req.body.imageUrl = req.file.cloudStoragePublicUrl;
+        }
+        getModel().updateTournament(id, data, (err, savedData) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            res.redirect('/admin/tournaments');
+        });
+    }
+);
+
+// delete admin from datastore
+router.get('/:tournament/deletetournament', oauth2.required, adminauth.required, (req, res, next) => {
+    getModel().deleteTournament(req.params.tournament, (err) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        res.redirect('/admin/tournaments');
+    });
+});
+
+
 
 // [END TOURNAMENTS]
 module.exports = router;

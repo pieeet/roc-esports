@@ -38,9 +38,9 @@ block content
                         p start time: #{tournament.starttime}
                         p end time: #{tournament.endtime}
                         p location: #{tournament.location}
-                        a(href=`/admin/${tournament.id}/deletegame`, class='btn btn-warning')
+                        a(href=`/admin/${tournament.id}/deletetournament`, class='btn btn-warning')
                             i.glyphicon.glyphicon-trash
-                        a(href=`/admin/${tournament.id}/updategame`, class='btn btn-warning')
+                        a(href=`/admin/${tournament.id}/updatetournament`, class='btn btn-warning')
                             i.glyphicon.glyphicon-edit
 
         else

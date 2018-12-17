@@ -21,7 +21,7 @@ block content
             i.glyphicon.glyphicon-plus
             span  Add admin
 
-        if admins
+        if admins && admins.length
             each admin in admins
                 .media
                     .media-left
@@ -36,5 +36,5 @@ block content
                             i.glyphicon.glyphicon-edit
 
 
-        else if !admins || !admins.length
-                p No admins registered yet
+        else
+            p No admins registered yet
