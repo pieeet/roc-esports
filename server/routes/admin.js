@@ -261,7 +261,8 @@ router.get('/createtournament',
             res.render('tournamentform.pug', {
                 games: gameEntities,
                 action: "Add",
-                admin: {}
+                admin: {},
+                tournament: {}
             });
         });
     }

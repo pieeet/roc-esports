@@ -34,6 +34,7 @@ block content
         $(document).ready(
             function () {
                 let gameid = $('#gameid').text();
-                $("select#game").val(gameid);
+                if (gameid)
+                    $("select#game").val(gameid);
             }
         );
