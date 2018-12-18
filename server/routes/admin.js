@@ -19,6 +19,32 @@ function getModel() {
     // return require('../data/model-datastore'); // doet hetzelfde
 }
 
+function prettyTime(date) {
+    let out = '';
+    if ((date.getHours() + '').length == 1) {
+        out = '0' + date.getHours() + ':';
+    } else
+        out = date.getHours() + ':';
+    if ((date.getMinutes() + '').length == 1) {
+        out += '0' + date.getMinutes();
+    } else
+        out += date.getMinutes();
+    return out;
+}
+
+function prettyDate(date) {
+    let out = '';
+    if ((date.getDay() + '').length == 1) {
+        out = '0' + date.getDay() + '/';
+    } else
+        out = date.getMonth() + '/';
+    if ((date.getMonth() + '').length == 1) {
+        out += '0' + date.getMonth();
+    } else
+        out += date.getMonth();
+    return out + '/' + date.getFullYear();
+}
+
 // Automatically parse request body as form data
 router.use(bodyParser.urlencoded({extended: false}));
 
@@ -148,6 +174,11 @@ router.get('/tournaments',
                 // add game to tournament. Since we already have the games, no need to call database
                 for (let i = 0; i < tournaments.length; i++) {
                     let tournament = tournaments[i];
+
+                    tournament.date = prettyDate(new Date(tournament.starttime));
+                    tournament.starttime = prettyTime(new Date(tournament.starttime));
+                    tournament.endtime = prettyTime(new Date(tournament.endtime));
+
                     for (let j = 0; j < games.length; j++) {
                         let game = games[j];
                         if (tournament.game === game.id) {
@@ -277,6 +308,14 @@ router.post('/createtournament',
     adminauth.required,
     (req, res, next) => {
         const data = req.body;
+
+        let starttime = new Date(data.date+'T'+data.starttime+'Z');
+        let endtime = new Date(data.date+'T'+data.endtime+'Z')
+
+        data['date'] = undefined;
+        data['starttime'] = starttime.getTime();
+        data['endtime'] = endtime.getTime();
+
         getModel().create(KIND_TOURNAMENT, data, (err, savedData) => {
             if (err) {
                 next(err);
@@ -325,7 +364,14 @@ router.post('/:tournament/updatetournament',
         // in cloud storage.
         if (req.file && req.file.cloudStoragePublicUrl) {
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
-        }
+        } 
+        let starttime = new Date(data.date+'T'+data.starttime+'Z');
+        let endtime = new Date(data.date+'T'+data.endtime+'Z')
+
+        data['date'] = undefined;
+        data['starttime'] = starttime.getTime();
+        data['endtime'] = endtime.getTime();
+
         getModel().update(KIND_TOURNAMENT, id, data, (err, savedData) => {
             if (err) {
                 next(err);
