@@ -128,7 +128,7 @@ function listGames (limit, token, cb) {
 function listTournaments (limit, token, cb) {
     const q = ds.createQuery([KIND_TOURNAMENT])
         .limit(limit)
-        .order('date')
+        .order('starttime')
         .start(token);
 
     ds.runQuery(q, (err, entities, nextQuery) => {
