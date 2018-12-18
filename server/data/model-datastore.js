@@ -7,11 +7,12 @@ const config = require('../../config');
 const ds = Datastore({
     projectId: config.get('GCLOUD_PROJECT')
 });
-// [END config]
 
 const KIND_ADMIN = "Admin";
 const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
+
+// [END config]
 
 function fromDatastore (obj) {
     obj.id = obj[Datastore.KEY].id;
@@ -34,19 +35,15 @@ function toDatastore (obj, nonIndexed) {
     return results;
 }
 
-// Creates a new admin or updates an existing admin with new data. The provided
-// data is automatically translated into Datastore format. The admin will be
-// queued for background processing.
-// [START update]
-function updateAdmin (id, data, cb) {
+function update(table, id, data, cb) {
     let key;
     if (id) {
         // parse existing id, 10 indicates it's a decimal number (radix)
-        key = ds.key([KIND_ADMIN, parseInt(id, 10)]);
+        key = ds.key([table, parseInt(id, 10)]);
 
     } else {
         // new entity in datastore makes a new id.
-        key = ds.key(KIND_ADMIN);
+        key = ds.key(table);
     }
 
     const entity = {
@@ -63,12 +60,16 @@ function updateAdmin (id, data, cb) {
         }
     );
 }
-// [END update]
 
-function createAdmin (data, cb) {
-    updateAdmin(null, data, cb);
+function create (table, data, cb) {
+    update(table, null, data, cb);
 }
 
+
+function _delete (table, id, cb) {
+    const key = ds.key([table, parseInt(id, 10)]);
+    ds.delete(key, cb);
+}
 
 // Lists all admins in the Datastore sorted alphabetically by name.
 // The ``limit`` argument determines the maximum amount of results to
@@ -90,17 +91,9 @@ function listAdmins (limit, token, cb) {
         cb(null, entities.map(fromDatastore), hasMore);
     });
 }
-// [END list]
 
-// [START delete admin]
-function _deleteAdmin (id, cb) {
-    const key = ds.key([KIND_ADMIN, parseInt(id, 10)]);
-    ds.delete(key, cb);
-}
-//[END delete admin]
-
-function readAdmin (id, cb) {
-    const key = ds.key([KIND_ADMIN, parseInt(id, 10)]);
+function read(table, id, cb) {
+    const key = ds.key([table, parseInt(id, 10)]);
     ds.get(key, (err, entity) => {
         if (!err && !entity) {
             err = {
@@ -114,59 +107,6 @@ function readAdmin (id, cb) {
         }
         cb(null, fromDatastore(entity));
     });
-}
-
-function readGame (id, cb) {
-    const key = ds.key([KIND_GAME, parseInt(id, 10)]);
-    ds.get(key, (err, entity) => {
-        if (!err && !entity) {
-            err = {
-                code: 404,
-                message: 'Not found'
-            };
-        }
-        if (err) {
-            cb(err);
-            return;
-        }
-        cb(null, fromDatastore(entity));
-    });
-}
-
-function updateGame (id, data, cb) {
-    let key;
-    if (id) {
-        // parse existing id, 10 indicates it's a decimal number (radix)
-        key = ds.key([KIND_GAME, parseInt(id, 10)]);
-
-    } else {
-        // new entity in datastore makes a new id.
-        key = ds.key(KIND_GAME);
-    }
-
-    const entity = {
-        key: key,
-        // array with non-indexed fields
-        data: toDatastore(data, [])
-    };
-
-    ds.save(
-        entity,
-        (err) => {
-            data.id = entity.key.id;
-            cb(err, err ? null : data);
-        }
-    );
-}
-// [END update]
-
-function createGame (data, cb) {
-    updateGame(null, data, cb);
-}
-
-function _deleteGame (id, cb) {
-    const key = ds.key([KIND_GAME, parseInt(id, 10)]);
-    ds.delete(key, cb);
 }
 
 function listGames (limit, token, cb) {
@@ -183,13 +123,6 @@ function listGames (limit, token, cb) {
         const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
         cb(null, entities.map(fromDatastore), hasMore);
     });
-}
-
-
-// [END update]
-
-function createTournament (data, cb) {
-    updateTournament(null, data, cb);
 }
 
 function listTournaments (limit, token, cb) {
@@ -225,59 +158,17 @@ function readTournament (id, cb) {
     });
 }
 
-function updateTournament (id, data, cb) {
-    let key;
-    if (id) {
-        // parse existing id, 10 indicates it's a decimal number (radix)
-        key = ds.key([KIND_TOURNAMENT, parseInt(id, 10)]);
-
-    } else {
-        // new entity in datastore makes a new id.
-        key = ds.key(KIND_TOURNAMENT);
-    }
-
-    const entity = {
-        key: key,
-        // array with non-indexed fields
-        data: toDatastore(data, [])
-    };
-
-    ds.save(
-        entity,
-        (err) => {
-            data.id = entity.key.id;
-            cb(err, err ? null : data);
-        }
-    );
-}
-
-function _deleteTournament (id, cb) {
-    const key = ds.key([KIND_TOURNAMENT, parseInt(id, 10)]);
-    ds.delete(key, cb);
-}
 
 
 // [START exports]
 module.exports = {
-    //Admin
-    createAdmin,
-    readAdmin,
-    updateAdmin,
-    deleteAdmin: _deleteAdmin,
+    create,
+    read,
+    update,
+    delete: _delete,
+
     listAdmins,
-
-    //Game
-    createGame,
-    readGame,
-    updateGame,
-    deleteGame: _deleteGame,
     listGames,
-
-    //Tournament
-    createTournament,
-    readTournament,
-    updateTournament,
-    deleteTournament: _deleteTournament,
-    listTournaments
+    listTournaments,
 };
 // [END exports]

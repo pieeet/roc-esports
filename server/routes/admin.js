@@ -10,6 +10,10 @@ const adminauth = require('../lib/adminauth');
 // information and expose login/logout URLs to templates.
 router.use(oauth2.template);
 
+const KIND_ADMIN = "Admin";
+const KIND_GAME = "Game";
+const KIND_TOURNAMENT = "Tournament";
+
 function getModel() {
     return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
     // return require('../data/model-datastore'); // doet hetzelfde
@@ -67,7 +71,7 @@ router.post('/createadmin',
             data.imageUrl = req.file.cloudStoragePublicUrl;
         }
         delete data['image'];
-        getModel().createAdmin(data, (err, savedData) => {
+        getModel().create(KIND_ADMIN, data, (err, savedData) => {
             if (err) {
                 next(err);
                 return;
@@ -79,7 +83,7 @@ router.post('/createadmin',
 
 // delete admin from datastore
 router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().deleteAdmin(req.params.admin, (err) => {
+    getModel().delete(KIND_ADMIN, req.params.admin, (err) => {
         if (err) {
             next(err);
             return;
@@ -90,7 +94,7 @@ router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res
 
 // reads admin and redirects to update form
 router.get('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().readAdmin(req.params.admin, (err, entity) => {
+    getModel().read(KIND_ADMIN, req.params.admin, (err, entity) => {
         if (err) {
             next(err);
             return;
@@ -116,7 +120,7 @@ router.post('/:admin/updateadmin',
         if (req.file && req.file.cloudStoragePublicUrl) {
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
         }
-        getModel().updateAdmin(id, data, (err, savedData) => {
+        getModel().update(KIND_ADMIN, id, data, (err, savedData) => {
             if (err) {
                 next(err);
                 return;
@@ -190,7 +194,7 @@ router.post('/creategame',
             data.imageUrl = req.file.cloudStoragePublicUrl;
         }
         delete data['image'];
-        getModel().createGame(data, (err, savedData) => {
+        getModel().create(KIND_GAME, data, (err, savedData) => {
             if (err) {
                 next(err);
                 return;
@@ -201,7 +205,7 @@ router.post('/creategame',
 
 // reads admin and redirects to update form
 router.get('/:game/updategame', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().readGame(req.params.game, (err, entity) => {
+    getModel().read(KIND_GAME, req.params.game, (err, entity) => {
         if (err) {
             next(err);
             return;
@@ -227,7 +231,7 @@ router.post('/:game/updategame',
         if (req.file && req.file.cloudStoragePublicUrl) {
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
         }
-        getModel().updateGame(id, data, (err, savedData) => {
+        getModel().update(KIND_GAME, id, data, (err, savedData) => {
             if (err) {
                 next(err);
                 return;
@@ -239,7 +243,7 @@ router.post('/:game/updategame',
 
 // delete admin from datastore
 router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().deleteGame(req.params.game, (err) => {
+    getModel().delete(KIND_GAME, req.params.game, (err) => {
         if (err) {
             next(err);
             return;
@@ -273,7 +277,7 @@ router.post('/createtournament',
     adminauth.required,
     (req, res, next) => {
         const data = req.body;
-        getModel().createTournament(data, (err, savedData) => {
+        getModel().create(KIND_TOURNAMENT, data, (err, savedData) => {
             if (err) {
                 next(err);
                 return;
@@ -287,7 +291,7 @@ router.post('/createtournament',
 router.get('/:tournament/updatetournament', oauth2.required, adminauth.required, (req, res, next) => {
     let tournament = {};
     let games = {};
-    getModel().readTournament(req.params.tournament, (err, entity) => {
+    getModel().read(KIND_TOURNAMENT, req.params.tournament, (err, entity) => {
         if (err) {
             next(err);
             return;
@@ -322,7 +326,7 @@ router.post('/:tournament/updatetournament',
         if (req.file && req.file.cloudStoragePublicUrl) {
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
         }
-        getModel().updateTournament(id, data, (err, savedData) => {
+        getModel().update(KIND_TOURNAMENT, id, data, (err, savedData) => {
             if (err) {
                 next(err);
                 return;
@@ -334,7 +338,7 @@ router.post('/:tournament/updatetournament',
 
 // delete admin from datastore
 router.get('/:tournament/deletetournament', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().deleteTournament(req.params.tournament, (err) => {
+    getModel().delete(KIND_TOURNAMENT, req.params.tournament, (err) => {
         if (err) {
             next(err);
             return;

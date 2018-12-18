@@ -5,15 +5,31 @@ block navbar-list
     ul.nav.navbar-nav
         li
             a(href="/subscribe") Subscribe
-block navbar-profile
-
 
 block content
     .container
-        h2 Super Smash Bros
-        p Date ...
-        p Start Time ...
-        p End Time ...
-        p Location ...
+        h2 Upcoming tournaments
+        if tournaments.length
+            each tournament in tournaments
+                .media
+                    .media-left
+                        img(src=tournament.game.imageUrl ||
+                        "/img/male-profile-pic-placeholder.png")
+                    .media-body
+                        h4= tournament.game.name
+                        p date: #{tournament.date}
+                        p start time: #{tournament.starttime}
+                        p end time: #{tournament.endtime}
+                        p location: #{tournament.location}
+                        a.btn.btn-success(href=`/admin/${tournament.id}/deletetournament`)
+                            i.glyphicon.glyphicon-list-alt
+                            span &nbsp; Subscribe
+
+
+        else
+            h3 No upcoming tournaments.
+
+
+
 
 
