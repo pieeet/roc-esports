@@ -33,16 +33,16 @@ function prettyTime(date) {
 }
 
 function prettyDate(date) {
-    let out = '';
+    let out = date.getFullYear()+'-';
+    if ((date.getMonth () + '').length == 1) {
+        out+= '0' + date.getMonth() + '-';
+    } else
+        out+= date.getMonth() + '-';
     if ((date.getDay() + '').length == 1) {
-        out = '0' + date.getDay() + '/';
+        out += '0' + date.getDay();
     } else
-        out = date.getMonth() + '/';
-    if ((date.getMonth() + '').length == 1) {
-        out += '0' + date.getMonth();
-    } else
-        out += date.getMonth();
-    return out + '/' + date.getFullYear();
+        out += date.getDay();
+    return out;
 }
 
 // Automatically parse request body as form data
@@ -335,7 +335,11 @@ router.get('/:tournament/updatetournament', oauth2.required, adminauth.required,
             next(err);
             return;
         }
-        tournament = entity;
+            tournament = entity;
+            tournament.date = prettyDate(new Date(tournament.starttime));
+            tournament.starttime = prettyTime(new Date(tournament.starttime));
+            tournament.endtime = prettyTime(new Date(tournament.endtime));
+            
         getModel().listGames(null, null, (err, gameEntities, cursor) => {
             if (err) {
                 next(err);
