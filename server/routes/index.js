@@ -5,6 +5,10 @@ const oauth2 = require('../lib/oauth2');
 // information and expose login/logout URLs to templates.
 router.use(oauth2.template);
 
+const KIND_ADMIN = "Admin";
+const KIND_GAME = "Game";
+const KIND_TOURNAMENT = "Tournament";
+
 
 function getModel() {
     return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
@@ -12,41 +16,44 @@ function getModel() {
 }
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'roc-dev esports' });
+router.get('/', function (req, res, next) {
+    res.render('index', {title: 'roc-dev esports'});
 });
 
-/* GET subscribe pagen*/
-router.get('/subscribe', oauth2.required,
+/* GET subscribe page*/
+router.get('/tournaments',
     (reg, res, next) => {
-    let games = {};
-    let tournaments = {};
-    getModel().listGames(null, null, (err, gameEntities, cursor) => {
-        if (err) {
-            next(err);
-            return;
-        }
-        games = gameEntities;
+        let tournaments = {};
         getModel().listTournaments(null, null, (err, tournamentEntities, cursor) => {
-            tournaments = tournamentEntities;
-            // add game to tournament. Since we already have the games, no need to call database
-            for (let i = 0; i < tournaments.length; i++) {
-                let tournament = tournaments[i];
-                for (let j = 0; j < games.length; j++) {
-                    let game = games[j];
-                    if (tournament.game === game.id) {
-                        tournament.game = game;
-                    }
-                }
-            }
             if (err) {
                 next(err);
                 return;
             }
-            res.render('subscribe.pug', {
-                tournaments: tournaments
-            });
+            tournaments = tournamentEntities;
+            for (let i = 0; i < tournaments.length; i++) {
+                // replace tournament.game (id only) with full game entity so we have game data
+                let gameId = tournaments[i].game;
+
+                getModel().read(KIND_GAME, gameId, (err, entity) => {
+                    if (err) {
+                        next(err);
+                        return;
+                    }
+                    tournaments[i].gamename = entity.name;
+                    tournaments[i].gameImg = entity.imageUrl;
+                    console.log(tournaments[i].gamename);
+                    console.log(tournaments[i].imgUrl);
+                    if (i === tournaments.length - 1) {
+                        res.render('subscribelist.pug', {
+                            tournaments: tournaments
+                        });
+                    }
+                });
+            }
+
+
         });
+
+
     });
-});
 module.exports = router;

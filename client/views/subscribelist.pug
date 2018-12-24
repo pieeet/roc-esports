@@ -13,17 +13,17 @@ block content
             each tournament in tournaments
                 .media
                     .media-left
-                        img(src=tournament.game.imageUrl ||
+                        img(src=tournament.gameImg ||
                         "/img/male-profile-pic-placeholder.png")
                     .media-body
-                        h4= tournament.game.name
+                        h4= tournament.gamename
                         p date: #{tournament.date}
                         p start time: #{tournament.starttime}
                         p end time: #{tournament.endtime}
                         p location: #{tournament.location}
                         a.btn.btn-success(href=`/admin/${tournament.id}/deletetournament`)
                             i.glyphicon.glyphicon-list-alt
-                            span &nbsp; Subscribe
+                            span &nbsp; (Un)Subscribe
 
 
         else

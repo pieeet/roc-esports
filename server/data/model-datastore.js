@@ -141,6 +141,25 @@ function listTournaments (limit, token, cb) {
     });
 }
 
+// filter documentation https://goo.gl/pC3Yd6
+function listUpcomingTournaments (limit, token, cb) {
+    const q = ds.createQuery([KIND_TOURNAMENT])
+        .limit(limit)
+        .filter('starttime', '>', new Date().getTime())
+        .order('starttime')
+        .start(token);
+
+    ds.runQuery(q, (err, entities, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
+        cb(null, entities.map(fromDatastore), hasMore);
+    });
+}
+
+
 function readTournament (id, cb) {
     const key = ds.key([KIND_TOURNAMENT, parseInt(id, 10)]);
     ds.get(key, (err, entity) => {
