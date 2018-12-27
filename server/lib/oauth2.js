@@ -20,9 +20,6 @@ function extractProfile (profile) {
     };
 }
 
-function getModel() {
-    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
-}
 
 // Configure the Google strategy for use by Passport.js.
 //
@@ -35,6 +32,7 @@ passport.use(new GoogleStrategy({
     clientID: config.get('OAUTH2_CLIENT_ID'),
     clientSecret: config.get('OAUTH2_CLIENT_SECRET'),
     callbackURL: config.get('OAUTH2_CALLBACK'),
+    userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     accessType: 'offline'
 }, (accessToken, refreshToken, profile, cb) => {
     // Extract the minimal profile information we need from the profile object

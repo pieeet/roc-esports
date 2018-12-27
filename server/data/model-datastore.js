@@ -11,15 +11,17 @@ const ds = Datastore({
 const KIND_ADMIN = "Admin";
 const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
+const KIND_PLAYER = "Player";
+const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
 
 // [END config]
 
-function fromDatastore (obj) {
+function fromDatastore(obj) {
     obj.id = obj[Datastore.KEY].id;
     return obj;
 }
 
-function toDatastore (obj, nonIndexed) {
+function toDatastore(obj, nonIndexed) {
     nonIndexed = nonIndexed || [];
     const results = [];
     Object.keys(obj).forEach((k) => {
@@ -61,12 +63,12 @@ function update(table, id, data, cb) {
     );
 }
 
-function create (table, data, cb) {
+function create(table, data, cb) {
     update(table, null, data, cb);
 }
 
 
-function _delete (table, id, cb) {
+function _delete(table, id, cb) {
     const key = ds.key([table, parseInt(id, 10)]);
     ds.delete(key, cb);
 }
@@ -76,7 +78,7 @@ function _delete (table, id, cb) {
 // return per page. The ``token`` argument allows requesting additional
 // pages. The callback is invoked with ``(err, books, nextPageToken)``.
 // [START list]
-function listAdmins (limit, token, cb) {
+function listAdmins(limit, token, cb) {
     const q = ds.createQuery([KIND_ADMIN])
         .limit(limit)
         .order('name')
@@ -109,7 +111,7 @@ function read(table, id, cb) {
     });
 }
 
-function listGames (limit, token, cb) {
+function listGames(limit, token, cb) {
     const q = ds.createQuery([KIND_GAME])
         .limit(limit)
         .order('name')
@@ -125,45 +127,13 @@ function listGames (limit, token, cb) {
     });
 }
 
-function listTournaments (limit, token, cb) {
-    const q = ds.createQuery([KIND_TOURNAMENT])
+function getPlayer(email, limit, token, cb) {
+    const q = ds.createQuery([KIND_PLAYER])
         .limit(limit)
-        .order('starttime')
+        .filter('email', '=', email)
         .start(token);
-
-    ds.runQuery(q, (err, entities, nextQuery) => {
-        if (err) {
-            cb(err);
-            return;
-        }
-        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
-        cb(null, entities.map(fromDatastore), hasMore);
-    });
-}
-
-// filter documentation https://goo.gl/pC3Yd6
-function listUpcomingTournaments (limit, token, cb) {
-    const q = ds.createQuery([KIND_TOURNAMENT])
-        .limit(limit)
-        .filter('starttime', '>', new Date().getTime())
-        .order('starttime')
-        .start(token);
-
-    ds.runQuery(q, (err, entities, nextQuery) => {
-        if (err) {
-            cb(err);
-            return;
-        }
-        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
-        cb(null, entities.map(fromDatastore), hasMore);
-    });
-}
-
-
-function readTournament (id, cb) {
-    const key = ds.key([KIND_TOURNAMENT, parseInt(id, 10)]);
-    ds.get(key, (err, entity) => {
-        if (!err && !entity) {
+    ds.runQuery(q, (err, player, nextQuery) => {
+        if (!err && !player) {
             err = {
                 code: 404,
                 message: 'Not found'
@@ -173,10 +143,59 @@ function readTournament (id, cb) {
             cb(err);
             return;
         }
-        cb(null, fromDatastore(entity));
+        cb(null, player.map(fromDatastore), false);
     });
 }
 
+function listTournaments(limit, token, startDate, cb) {
+    const q = ds.createQuery([KIND_TOURNAMENT])
+        .limit(limit)
+        .filter('starttime', '>', startDate)
+        .order('starttime', {
+            descending: true,
+        })
+        .start(token);
+
+    ds.runQuery(q, (err, entities, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
+        cb(null, entities.map(fromDatastore), hasMore);
+    });
+}
+
+function getSubscription(tournament, player, cb) {
+    const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
+        .filter('player_id', '=', player)
+        .filter('tournament_id', '=', tournament);
+    ds.runQuery(q, (err, entity, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        cb(null, entity.map(fromDatastore));
+    });
+}
+
+
+function getAttendees(tournamentId, cb) {
+    let attendees = [];
+    const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
+        .filter('tournament_id', '=', tournamentId);
+    ds.runQuery(q, (err, ents, nextQuery) => {
+        for (let i = 0; i < ents.length; i++) {
+            read(KIND_PLAYER, ents[i].player_id, (err, player) => {
+                // console.log(player);
+                attendees.push(player);
+                if (i === attendees.length -1) {
+                    cb(null, attendees);
+                }
+            });
+        }
+    });
+}
 
 
 // [START exports]
@@ -189,5 +208,9 @@ module.exports = {
     listAdmins,
     listGames,
     listTournaments,
+
+    getPlayer,
+    getSubscription,
+    getAttendees
 };
 // [END exports]

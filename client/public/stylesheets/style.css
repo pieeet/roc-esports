@@ -4,6 +4,7 @@ html {
 
 body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  margin-bottom: 2em;
 }
 
 a {
@@ -29,10 +30,11 @@ label, input, .media, form {
   height: 50px;
 }
 
-.media-left img {
+.media-left img, .avatar {
   width: 60px;
   height: 60px;
   margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 

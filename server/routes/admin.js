@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const oauth2 = require('../lib/oauth2');
 const adminauth = require('../lib/adminauth');
 const moment = require('moment-timezone');
+const utils = require('../lib/utils');
 moment.tz.setDefault('Europe/Amsterdam');
 
 // Use the oauth middleware to automatically get the user's profile
@@ -120,6 +121,8 @@ router.post('/:admin/updateadmin',
         // Was an image uploaded? If so, we'll use its public URL
         // in cloud storage.
         if (req.file && req.file.cloudStoragePublicUrl) {
+            const oldImageUrl = data.imageUrl.valueOf();
+            images.deleteImage(oldImageUrl);
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
         }
         getModel().update(KIND_ADMIN, id, data, (err, savedData) => {
@@ -195,6 +198,8 @@ router.post('/:game/updategame',
         // Was an image uploaded? If so, we'll use its public URL
         // in cloud storage.
         if (req.file && req.file.cloudStoragePublicUrl) {
+            const oldImageUrl = data.imageUrl.valueOf();
+            images.deleteImage(oldImageUrl);
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
         }
         getModel().update(KIND_GAME, id, data, (err, savedData) => {
@@ -221,37 +226,6 @@ router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, 
 
 // [START TOURNAMENTS]
 
-function prettyTime(date) {
-    let mmnt = moment.tz(date.getTime(), 'Europe/Amsterdam');
-
-    let out = '';
-    if (mmnt.hours() < 10) {
-        out = '0' + mmnt.hours() + ':';
-    } else
-        out = mmnt.hours() + ':';
-    if ((mmnt.minutes() < 10)) {
-        out += '0' + mmnt.minutes();
-    } else
-        out += mmnt.minutes();
-    return out;
-}
-
-function prettyDate(date) {
-    // make new Date with NL timezone
-    // date = new Date(moment(date).tz('Europe/Amsterdam').format());
-    let out = date.getFullYear() + '-';
-    // month = zero based (jan == 0)
-    if (date.getMonth() + 1 < 10) {
-        out += '0' + (date.getMonth() + 1) + '-';
-    } else
-        out += date.getMonth() + 1 + '-';
-    if ((date.getDate() < 10)) {
-        out += '0' + date.getDate();
-    } else
-        out += date.getDate();
-    return out;
-}
-
 router.get('/tournaments',
     oauth2.required,
     adminauth.required, (req, res, next) => {
@@ -263,15 +237,15 @@ router.get('/tournaments',
                 return;
             }
             games = gameEntities;
-            getModel().listTournaments(null, null, (err, tournamentEntities, cursor) => {
+            getModel().listTournaments(null, null, 0, (err, tournamentEntities, cursor) => {
                 tournaments = tournamentEntities;
                 // add game to tournament. Since we already have the games, no need to call database
                 for (let i = 0; i < tournaments.length; i++) {
                     let tournament = tournaments[i];
 
-                    tournament.date = prettyDate(new Date(tournament.starttime));
-                    tournament.starttime = prettyTime(new Date(tournament.starttime));
-                    tournament.endtime = prettyTime(new Date(tournament.endtime));
+                    tournament.date = utils.prettyDate(new Date(tournament.starttime));
+                    tournament.starttime = utils.prettyTime(new Date(tournament.starttime));
+                    tournament.endtime = utils.prettyTime(new Date(tournament.endtime));
 
                     for (let j = 0; j < games.length; j++) {
                         let game = games[j];
@@ -323,9 +297,9 @@ router.post('/createtournament',
         let endtime = moment.tz(data.date + 'T' + data.endtime, 'Europe/Amsterdam');
         // no need to store date
         delete data['date'];
-        // save date as utc timestamp
-        data['starttime'] = starttime.utc().format();
-        data['endtime'] = endtime.utc().format();
+        // save date as utc
+        data['starttime'] = starttime.utc().valueOf();
+        data['endtime'] = endtime.utc().valueOf();
 
         getModel().create(KIND_TOURNAMENT, data, (err, savedData) => {
             if (err) {
@@ -337,8 +311,6 @@ router.post('/createtournament',
     }
 );
 
-
-
 // reads admin and redirects to update form
 router.get('/:tournament/updatetournament', oauth2.required, adminauth.required, (req, res, next) => {
     let tournament = {};
@@ -349,9 +321,9 @@ router.get('/:tournament/updatetournament', oauth2.required, adminauth.required,
                 return;
             }
             tournament = entity;
-            tournament.date = prettyDate(new Date(tournament.starttime));
-            tournament.starttime = prettyTime(new Date(tournament.starttime));
-            tournament.endtime = prettyTime(new Date(tournament.endtime));
+            tournament.date = utils.prettyDate(new Date(tournament.starttime));
+            tournament.starttime = utils.prettyTime(new Date(tournament.starttime));
+            tournament.endtime = utils.prettyTime(new Date(tournament.endtime));
 
             getModel().listGames(null, null, (err, gameEntities, cursor) => {
                 if (err) {

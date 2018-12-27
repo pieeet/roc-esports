@@ -1,0 +1,71 @@
+extends subscribelist.pug
+
+block content
+    .container
+        if player.playername
+            h2 #{player.playername}: player profile
+        else
+            h2 Welcome #{user.displayName}! let's first create your game profile.
+        form(method='POST', enctype="multipart/form-data" action="/saveplayer")
+            .form-group
+                label(for='playername') Player Name:
+                input#playername.form-control(type='text', name='playername', value=player.playername)
+            .form-group
+                label(for="avatar") Avatar
+                img.avatar(src=player.imageUrl || "/img/male-profile-pic-placeholder.png")
+                input#avatar.form-control(type="file", name="image")
+            if player.id
+                .form-group.hidden
+                    label(for="playerid") Player ID
+                    input#playerid.form-control(type="text", name="playerid",  value=player.id)
+            if !player.id
+                .form-group
+                    label(for='playername') Email school
+                    input#schoolmail.form-control(type='text', name='schoolmail')
+            .form-group.hidden
+                label(for="imageUrl") Game Image URL
+                input#imageUrl.form-control(type="text", name="imageUrl",  value=player.imageUrl)
+            .form-group.hidden
+                label(for="tournament") Tournament
+                input#tournament.form-control(type="text", name="tournament",  value=tournament.id)
+            .form-group
+                button#add-game-button.btn.btn-success(type='submit') #{actionplayer} profile
+
+        if player.playername
+            h2 Subscribe for tournament
+            .media
+                .media-left
+                    img(src=tournament.game.imageUrl ||
+                    "/img/male-profile-pic-placeholder.png")
+                .media-body
+                    h4= tournament.game.name
+                    p date: #{tournament.date}
+                    p start time: #{tournament.starttime}
+                    p end time: #{tournament.endtime}
+                    p location: #{tournament.location}
+
+                    form(method='POST')
+                        if subscriptionId
+                            .form-group.hidden
+                                label(for="subscriptionid") Subscription ID
+                                input#subscriptionid.form-control(type="text", name="subscription_id",  value=subscriptionId)
+                        .form-group.hidden
+                            label(for="tournamentid") Player ID
+                            input#tournamentid.form-control(type="text", name="tournament_id",  value=tournament.id)
+                        .form-group.hidden
+                            label(for="playerid") Player ID
+                            input#playerid.form-control(type="text", name="player_id",  value=player.id)
+                        .form-group
+                            button#subscribe-button.btn.btn-success(type='submit') #{actiontournament}
+            h2 Subscribed
+            if attendees.length
+                each attendee in attendees
+                    .media-left
+                        img(src= attendee.imageUrl ||
+                        "/img/male-profile-pic-placeholder.png")
+                    .media-body
+                        br
+                        h4= attendee.playername
+
+            else
+                p No attendees yet

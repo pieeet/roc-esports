@@ -4,7 +4,7 @@ extends layout.pug
 block navbar-list
     ul.nav.navbar-nav
         li
-            a(href="/subscribe") Subscribe
+            a(href="/tournaments") Tournaments
 
 block content
     .container
@@ -21,7 +21,7 @@ block content
                         p start time: #{tournament.starttime}
                         p end time: #{tournament.endtime}
                         p location: #{tournament.location}
-                        a.btn.btn-success(href=`/admin/${tournament.id}/deletetournament`)
+                        a.btn.btn-success(href=`/${tournament.id}/subscribe`)
                             i.glyphicon.glyphicon-list-alt
                             span &nbsp; (Un)Subscribe
 
