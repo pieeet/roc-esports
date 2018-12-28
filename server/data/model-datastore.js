@@ -185,14 +185,23 @@ function getAttendees(tournamentId, cb) {
     const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
         .filter('tournament_id', '=', tournamentId);
     ds.runQuery(q, (err, ents, nextQuery) => {
-        for (let i = 0; i < ents.length; i++) {
-            read(KIND_PLAYER, ents[i].player_id, (err, player) => {
-                // console.log(player);
-                attendees.push(player);
-                if (i === attendees.length -1) {
-                    cb(null, attendees);
-                }
-            });
+        if (err) {
+            cb(err);
+            return;
+        }
+        // no attendees return empty list
+        if (!ents.length) {
+            cb(null, attendees);
+        } else {
+            for (let i = 0; i < ents.length; i++) {
+                read(KIND_PLAYER, ents[i].player_id, (err, player) => {
+                    // console.log(player);
+                    attendees.push(player);
+                    if (i === attendees.length -1) {
+                        cb(null, attendees);
+                    }
+                });
+            }
         }
     });
 }

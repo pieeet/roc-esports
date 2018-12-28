@@ -5,7 +5,7 @@ block content
         if player.playername
             h2 #{player.playername}: player profile
         else
-            h2 Welcome #{user.displayName}! let's first create your game profile.
+            h2 Welcome #{profile.displayName}! let's first create your game profile.
         form(method='POST', enctype="multipart/form-data" action="/saveplayer")
             .form-group
                 label(for='playername') Player Name:
@@ -23,7 +23,7 @@ block content
                     label(for='playername') Email school
                     input#schoolmail.form-control(type='text', name='schoolmail')
             .form-group.hidden
-                label(for="imageUrl") Game Image URL
+                label(for="imageUrl") Player Image URL
                 input#imageUrl.form-control(type="text", name="imageUrl",  value=player.imageUrl)
             .form-group.hidden
                 label(for="tournament") Tournament
@@ -31,7 +31,7 @@ block content
             .form-group
                 button#add-game-button.btn.btn-success(type='submit') #{actionplayer} profile
 
-        if player.playername
+        if player.id
             h2 Subscribe for tournament
             .media
                 .media-left

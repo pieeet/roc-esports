@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 const oauth2 = require('../lib/oauth2');
 // Use the oauth middleware to automatically get the user's profile
 // information and expose login/logout URLs to templates.
@@ -67,8 +67,8 @@ router.get('/tournaments', (reg, res, next) => {
     });
 });
 
-
 router.get('/:tournament/subscribe', oauth2.required, (req, res, next) => {
+    // get the tournament
     getModel().read(KIND_TOURNAMENT, req.params.tournament, (err, ent) => {
         if (err) {
             next(err);
@@ -81,14 +81,15 @@ router.get('/:tournament/subscribe', oauth2.required, (req, res, next) => {
         tournament.starttime = utils.prettyTime(start);
         tournament.endtime = utils.prettyTime(end);
 
+        //get the game associated with the tournament
         getModel().read(KIND_GAME, tournament.game, (err, ent) => {
             if (err) {
                 next(err);
                 return;
             }
             tournament.game = ent;
-            let user = req.user;
-            getModel().getPlayer(user.email, null, null, (err, ent) => {
+            // get the player profile associated with the logged in user
+            getModel().getPlayer(req.user.email, null, null, (err, ent) => {
                 if (err) {
                     next(err);
                     return;
@@ -99,12 +100,15 @@ router.get('/:tournament/subscribe', oauth2.required, (req, res, next) => {
                     player = {};
                 }
                 let actionPlayer;
+                // if existing player: possible update
+                // else: create profile before continue
                 if (player.id) {
                     actionPlayer = "Update";
                 } else {
                     actionPlayer = "Create";
                     player.id = null;
                 }
+                // check if player is subscribed to this tournament
                 let subscriptionId;
                 let actionTournament;
                 getModel().getSubscription(tournament.id, player.id, (err, ent) => {
@@ -119,11 +123,9 @@ router.get('/:tournament/subscribe', oauth2.required, (req, res, next) => {
                         actionTournament = "Unsubscribe";
                         subscriptionId = ent[0].id;
                     }
-
-                    // list attendees
+                    // make a list of subscribers
                     getModel().getAttendees(tournament.id, (err, attendees) => {
                         res.render('subscribeform', {
-                            user: user,
                             tournament: tournament,
                             player: player,
                             actionplayer: actionPlayer,
@@ -132,8 +134,6 @@ router.get('/:tournament/subscribe', oauth2.required, (req, res, next) => {
                             attendees: attendees
                         });
                     });
-
-
                 });
             });
         });
@@ -157,9 +157,12 @@ router.post('/saveplayer',
             images.deleteImage(oldImageUrl);
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
         }
+        // only store imageUrl, file is stored in GCS
         delete data['image'];
         data.email = req.user.email;
         let playerId = data.playerid;
+        // no need to store with an update
+        delete data.playerid;
         // if there is a playerId then it's an update...
         if (playerId) {
             getModel().update(KIND_PLAYER, playerId, data, (err, cb) => {
@@ -169,7 +172,7 @@ router.post('/saveplayer',
                 }
                 res.redirect(`/${tournament}/subscribe`)
             });
-            // ... if not it's a create
+        // ... if not it's a create
         } else {
             getModel().create(KIND_PLAYER, data, (err, cb) => {
                 if (err) {
@@ -204,7 +207,6 @@ router.post('/:tournament/subscribe', oauth2.required, (req, res, next) => {
             res.redirect(`/${tournamentId}/subscribe`);
         });
     }
-
 });
 
 module.exports = router;
