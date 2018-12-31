@@ -1,0 +1,14 @@
+extends layoutpublic.pug
+
+block content
+    .container
+        h2 Hi #{player.playername}
+        if message.length
+            p Something went wrong. Message: #{message}
+        else
+            p An email with a verification link has been sent to #{player.schoolmail}. It's rather likely it ended
+             | up in your spam folder. (We're working on that). So open the email and click the link, then come back here
+             | to subscribe for a tournament. Sorry for the inconvenience.
+
+        a.btn.btn-success(href='/tournaments') Ok
+

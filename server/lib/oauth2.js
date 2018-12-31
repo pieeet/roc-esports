@@ -92,7 +92,9 @@ router.get(
     },
 
     // Start OAuth 2 flow using Passport.js
-    passport.authenticate('google', { scope: ['email', 'profile'] })
+    passport.authenticate('google', { scope: [
+        'email', 'profile',],
+        prompt : "select_account"})
 );
 // [END authorize]
 
@@ -124,7 +126,7 @@ router.get('/auth/logout', (req, res) => {
 
 module.exports = {
     extractProfile: extractProfile,
-    router: router,
+    router,
     required: authRequired,
     template: addTemplateVariables
 };

@@ -37,4 +37,15 @@ router.get('/getAdmins', (req, res, next) => {
         });
     });
 });
+
+router.get('/:email/:token/verifytoken', (req, res, next) => {
+    getModel().verifyEmail(req.params.email, req.params.token, (err, cb) => {
+        if (err) {
+            next(err);
+        }
+        if (cb === 200) {
+            res.redirect('/tournaments');
+        }
+    });
+});
 module.exports = router;

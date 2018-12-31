@@ -13,6 +13,7 @@ const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
 const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
+const KIND_VERIFICATION = "VerifyPlayer";
 
 // [END config]
 
@@ -206,6 +207,29 @@ function getAttendees(tournamentId, cb) {
     });
 }
 
+function verifyEmail(email, token, cb) {
+    const q = ds.createQuery([KIND_PLAYER])
+        .filter('schoolmail', '=', email)
+        .filter('token', '=', token)
+        .limit(1);
+    ds.runQuery(q, (err, players, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        let player = fromDatastore(players[0]);
+        const id = player.id.valueOf();
+        delete player.id;
+        player['token'] = "verified";
+        update(KIND_PLAYER, id, player, (err, res) => {
+            if (err) {
+                cb(err);
+            }
+            cb(null, 200);
+        });
+    });
+}
+
 
 // [START exports]
 module.exports = {
@@ -220,6 +244,7 @@ module.exports = {
 
     getPlayer,
     getSubscription,
-    getAttendees
+    getAttendees,
+    verifyEmail
 };
 // [END exports]

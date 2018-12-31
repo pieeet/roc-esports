@@ -1,12 +1,13 @@
-extends subscribelist.pug
+extends layoutpublic.pug
 
 block content
     .container
-        if player.playername
+        if player.id
             h2 #{player.playername}: player profile
         else
             h2 Welcome #{profile.displayName}! let's first create your game profile.
-        form(method='POST', enctype="multipart/form-data" action="/saveplayer")
+
+        form(method='POST', enctype="multipart/form-data" action=`/${actionplayer.toLowerCase()}player`)
             .form-group
                 label(for='playername') Player Name:
                 input#playername.form-control(type='text', name='playername', value=player.playername)
@@ -18,7 +19,7 @@ block content
                 .form-group.hidden
                     label(for="playerid") Player ID
                     input#playerid.form-control(type="text", name="playerid",  value=player.id)
-            if !player.id
+            if !player.verified
                 .form-group
                     label(for='playername') Email school
                     input#schoolmail.form-control(type='text', name='schoolmail')
@@ -31,7 +32,9 @@ block content
             .form-group
                 button#add-game-button.btn.btn-success(type='submit') #{actionplayer} profile
 
-        if player.id
+
+
+        if player.id && player.verified
             h2 Subscribe for tournament
             .media
                 .media-left
@@ -69,3 +72,5 @@ block content
 
             else
                 p No attendees yet
+        if player.id && !player.verified
+                p Check your email at #{player.schoolmail} to verify.

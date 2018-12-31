@@ -40,7 +40,7 @@ router.get('/', oauth2.required, adminauth.required, (req, res, next) => {
             next(err);
             return;
         }
-        res.render('admin', {
+        res.render('admin/admin', {
             title: 'roc-dev esports',
             admins: entities
         });
@@ -53,7 +53,7 @@ router.get('/createadmin',
     adminauth.required,
     (req, res, next) => {
 
-        res.render('adminform.pug', {
+        res.render('admin/adminform.pug', {
             admin: {},
             action: 'Add'
         });
@@ -102,7 +102,7 @@ router.get('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res
             next(err);
             return;
         }
-        res.render('adminform.pug', {
+        res.render('admin/adminform.pug', {
             admin: entity,
             action: 'Update'
         });
@@ -142,7 +142,7 @@ router.get('/creategame',
     oauth2.required,
     adminauth.required,
     (req, res, next) => {
-        res.render('gameform.pug', {
+        res.render('admin/gameform.pug', {
             admin: {},
             action: 'Add',
             game: {}
@@ -179,7 +179,7 @@ router.get('/:game/updategame', oauth2.required, adminauth.required, (req, res, 
             next(err);
             return;
         }
-        res.render('gameform.pug', {
+        res.render('admin/gameform.pug', {
             game: entity,
             action: 'Update'
         });
@@ -258,7 +258,7 @@ router.get('/tournaments',
                     next(err);
                     return;
                 }
-                res.render('tournament.pug', {
+                res.render('admin/tournament.pug', {
                     games: games,
                     tournaments: tournaments,
                     admin: {}
@@ -277,7 +277,7 @@ router.get('/createtournament',
                 next(err);
                 return;
             }
-            res.render('tournamentform.pug', {
+            res.render('admin/tournamentform.pug', {
                 games: gameEntities,
                 action: "Add",
                 admin: {},
@@ -330,7 +330,7 @@ router.get('/:tournament/updatetournament', oauth2.required, adminauth.required,
                     next(err);
                     return;
                 }
-                res.render('tournamentform.pug', {
+                res.render('admin/tournamentform.pug', {
                     games: gameEntities,
                     action: "Update",
                     tournament: tournament,

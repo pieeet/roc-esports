@@ -27,11 +27,8 @@ html
                     block navbar-list
                         ul.nav.navbar-nav
                             li
-                                a(href="/admin") Admins
-                            li
-                                a(href="/admin/tournaments") Tournaments/Games
+                                a(href="/tournaments") Tournaments
                     block navbar-profile
-                        // [START profile]
                         p.navbar-text.navbar-right
                             if profile
                                 if profile.image
@@ -40,6 +37,5 @@ html
                                     a(href=logout) (logout)
                             else
                                 a(href=login) Login
-                            // [END profile]
 
         block content
