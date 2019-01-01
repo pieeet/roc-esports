@@ -18,8 +18,8 @@ const app = express();
 const config = require('./config');
 
 // Socket .io
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
+// var server = require('http').Server(app);
+// var io = require('socket.io')(server);
 
 // view engine setup
 app.set('views', path.join('client/views'));
@@ -76,21 +76,21 @@ app.use('/admin', adminRouter);
 app.use('/api', apiRouter);
 
 // Socket.IO Chat 
-app.get('/messages', (req, res) => {
-    Message.find({},(err, messages)=> {
-      res.send(messages);
-    })
-  })
-
-  app.post('/messages', (req, res) => {
-    var message = new Message(req.body);
-    message.save((err) =>{
-      if(err)
-        sendStatus(500);
-      res.sendStatus(200);
-    })
-  })
-  
+// app.get('/messages', (req, res) => {
+//     Message.find({},(err, messages)=> {
+//       res.send(messages);
+//     })
+//   })
+//
+//   app.post('/messages', (req, res) => {
+//     var message = new Message(req.body);
+//     message.save((err) =>{
+//       if(err)
+//         sendStatus(500);
+//       res.sendStatus(200);
+//     })
+//   })
+//
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     next(createError(404));
@@ -110,9 +110,9 @@ app.use(function(err, req, res, next) {
 if (module === require.main) {
 
     // Socket.IO Connect
-    io.on('connection', () =>{
-        console.log('a user is connected')
-       })
+    // io.on('connection', () =>{
+    //     console.log('a user is connected')
+    //    })
 
     // Create HTTP server on config port / 3000
     const server = app.listen(config.get('PORT') || '3000', () => {

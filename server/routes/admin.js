@@ -35,7 +35,7 @@ router.use((req, res, next) => {
 /* GET admin page. */
 router.get('/', oauth2.required, adminauth.required, (req, res, next) => {
     // get admins
-    getModel().listAdmins(null, null, (err, entities, cursor) => {
+    getModel().listAdmins(null, null, 1, (err, entities, cursor) => {
         if (err) {
             next(err);
             return;
@@ -48,95 +48,6 @@ router.get('/', oauth2.required, adminauth.required, (req, res, next) => {
     });
 });
 
-router.get('/createadmin',
-    oauth2.required,
-    adminauth.required,
-    (req, res, next) => {
-
-        res.render('admin/adminform.pug', {
-            admin: {},
-            action: 'Add'
-        });
-    }
-);
-
-//add admin to datastore
-router.post('/createadmin',
-    oauth2.required,
-    adminauth.required,
-    images.multer.single('image'),
-    images.sendUploadToGCS,
-    (req, res, next) => {
-        const data = req.body;
-        // Was an image uploaded? If so, we'll use its public URL
-        // in cloud storage.
-        if (req.file && req.file.cloudStoragePublicUrl) {
-            data.imageUrl = req.file.cloudStoragePublicUrl;
-        }
-        delete data['image'];
-        getModel().create(KIND_ADMIN, data, (err, savedData) => {
-            if (err) {
-                next(err);
-                return;
-            }
-            res.redirect(req.baseUrl);
-        });
-    }
-);
-
-// delete admin from datastore
-router.get('/:admin/deleteadmin', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().delete(KIND_ADMIN, req.params.admin, (err) => {
-        if (err) {
-            next(err);
-            return;
-        }
-        res.redirect(req.baseUrl);
-    });
-});
-
-// reads admin and redirects to update form
-router.get('/:admin/updateadmin', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().read(KIND_ADMIN, req.params.admin, (err, entity) => {
-        if (err) {
-            next(err);
-            return;
-        }
-        res.render('admin/adminform.pug', {
-            admin: entity,
-            action: 'Update'
-        });
-    });
-});
-
-//update admin to datastore with post request
-router.post('/:admin/updateadmin',
-    oauth2.required,
-    adminauth.required,
-    images.multer.single('image'),
-    images.sendUploadToGCS,
-    (req, res, next) => {
-        const data = req.body;
-        const id = req.params.admin;
-        // Was an image uploaded? If so, we'll use its public URL
-        // in cloud storage.
-        if (req.file && req.file.cloudStoragePublicUrl) {
-            const oldImageUrl = data.imageUrl.valueOf();
-            images.deleteImage(oldImageUrl);
-            req.body.imageUrl = req.file.cloudStoragePublicUrl;
-        }
-        getModel().update(KIND_ADMIN, id, data, (err, savedData) => {
-            if (err) {
-                next(err);
-                return;
-            }
-            res.redirect('/admin');
-        });
-    }
-);
-// [END ADMINS]
-
-
 // [START GAMES]
 router.get('/creategame',
     oauth2.required,
@@ -148,6 +59,7 @@ router.get('/creategame',
             game: {}
         });
     }
+
 );
 
 router.post('/creategame',
@@ -355,8 +267,8 @@ router.post('/:tournament/updatetournament',
         // no need to store date
         delete data['date'];
         // save date as utc timestamp
-        data['starttime'] = starttime.utc().format();
-        data['endtime'] = endtime.utc().format();
+        data['starttime'] = starttime.utc().valueOf();
+        data['endtime'] = endtime.utc().valueOf();
 
         getModel().update(KIND_TOURNAMENT, id, data, (err, savedData) => {
             if (err) {

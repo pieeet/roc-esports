@@ -1,0 +1,12 @@
+indexes:
+
+- kind: Player
+  properties:
+  - name: email
+  - name: role
+
+- kind: Player
+  properties:
+  - name: role
+    direction: desc
+  - name: playername

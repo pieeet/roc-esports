@@ -8,25 +8,18 @@ function getModel() {
 
 // [START middleware]
 // Middleware that requires the user to be admin. If the user is not admin
-// in, it will log out the user.
+// he will be redirected to a non-admin area.
 function adminRequired (req, res, next) {
-    getModel().listAdmins(null, null, (err, entities, cursor) => {
+    // 1 is the lowest admin level.
+    getModel().isAdmin(req.user.email, 1, (err, isAdmin) => {
         if (err) {
             next(err);
             return;
         }
-        let email = req.user.email;
-        let isAdmin = false;
-        for (let i = 0; i < entities.length; i++) {
-            if (email === entities[i].email) {
-                isAdmin = true;
-            }
-        }
         if (!isAdmin) {
-            return res.redirect('/auth/logout');
+            return res.redirect('/tournaments');
         }
         next();
-
     });
 }
 

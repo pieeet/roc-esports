@@ -71,10 +71,10 @@ function checkValidEmail(email) {
 }
 
 function checkValidSchoolMail(email) {
+    // if new schools enter the competition here's the place to add their email domain.
+    // Only one domain per school to avoid players making multiple accounts!!!
     const validEmailDomains = [
-        '@rocvf.nl',
-        '@student.rocvf.nl',
-        '@roc-dev.com',
+        // roc flevoland (students and teachers)
         '@talnet.nl'
     ];
     if (checkValidEmail(email)) {

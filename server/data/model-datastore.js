@@ -79,10 +79,14 @@ function _delete(table, id, cb) {
 // return per page. The ``token`` argument allows requesting additional
 // pages. The callback is invoked with ``(err, books, nextPageToken)``.
 // [START list]
-function listAdmins(limit, token, cb) {
-    const q = ds.createQuery([KIND_ADMIN])
+function listAdmins(limit, token, minrole, cb) {
+    const q = ds.createQuery([KIND_PLAYER])
         .limit(limit)
-        .order('name')
+        .filter('role', '>=', minrole)
+        .order('role', {
+            descending: true
+        })
+        .order('playername')
         .start(token);
 
     ds.runQuery(q, (err, entities, nextQuery) => {
@@ -167,6 +171,39 @@ function listTournaments(limit, token, startDate, cb) {
     });
 }
 
+function isAdmin(email, minrole, cb) {
+    const q = ds.createQuery([KIND_PLAYER])
+        .limit(1)
+        .filter('email', '=', email)
+        .select(['role']);
+
+    ds.runQuery(q, (err, players, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        let isAdmin = players[0].role >= minrole;
+        cb(null, isAdmin);
+    })
+}
+
+function listPlayers(limit, token, minrole, cb) {
+    const q = ds.createQuery([KIND_PLAYER])
+        .limit(limit)
+        .filter('role', '>=', minrole)
+        .order('role')
+        .order('playername')
+        .start(token);
+    ds.runQuery(q, (err, players, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
+        cb(null, players.map(fromDatastore), hasMore);
+    })
+}
+
 function getSubscription(tournament, player, cb) {
     const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
         .filter('player_id', '=', player)
@@ -210,7 +247,6 @@ function getAttendees(tournamentId, cb) {
 function verifyEmail(email, token, cb) {
     const q = ds.createQuery([KIND_PLAYER])
         .filter('schoolmail', '=', email)
-        .filter('token', '=', token)
         .limit(1);
     ds.runQuery(q, (err, players, nextQuery) => {
         if (err) {
@@ -218,8 +254,11 @@ function verifyEmail(email, token, cb) {
             return;
         }
         let player = fromDatastore(players[0]);
+
         const id = player.id.valueOf();
         delete player.id;
+        // avoid server error if users clicks email again after being verified
+        if (player.token === token || player.token === "verified")
         player['token'] = "verified";
         update(KIND_PLAYER, id, player, (err, res) => {
             if (err) {
@@ -227,6 +266,38 @@ function verifyEmail(email, token, cb) {
             }
             cb(null, 200);
         });
+    });
+}
+
+function schoolmailAvailable(schoolmail, cb) {
+    const q = ds.createQuery([KIND_PLAYER])
+        .filter('schoolmail', '=', schoolmail);
+    ds.runQuery(q, (err, ent) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        if (ent.length > 0) {
+            cb(null, false);
+        } else {
+            cb(null, true);
+        }
+    });
+}
+
+function playernameAvailable(playername, cb) {
+    const q = ds.createQuery([KIND_PLAYER])
+        .filter('playername', '=', playername);
+    ds.runQuery(q, (err, ent) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        if (ent.length > 0) {
+            cb(null, false);
+        } else {
+            cb(null, true);
+        }
     });
 }
 
@@ -239,12 +310,16 @@ module.exports = {
     delete: _delete,
 
     listAdmins,
+    listPlayers,
     listGames,
     listTournaments,
 
     getPlayer,
     getSubscription,
     getAttendees,
-    verifyEmail
+    verifyEmail,
+    isAdmin,
+    schoolmailAvailable,
+    playernameAvailable
 };
 // [END exports]

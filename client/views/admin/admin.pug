@@ -2,24 +2,7 @@ extends layoutadmin
 
 block content
     .container
-        h2 teamchat box  
-        .columns
-              .box.column.is-8.is-offset-2
-                h2.title Chatbox
-                .chat-messages.has-text-left
-                  ul#chat-messages
-                form
-                  .field.has-addons
-                    p.control
-                      input(type='text', class='input', value=profile.displayName, id='name')
-                    p.control.is-expanded
-                      input(type='text', class='input', placeholder='Try to say something', id='message')
-                    p.control
-                      input(type='submit', class='button is-success', value='Post')
         h2 Admins
-        a(href="/admin/createadmin", class='btn btn-success btn-sm')
-            i.glyphicon.glyphicon-plus
-            span  Add admin
 
         if admins && admins.length
             each admin in admins
@@ -30,10 +13,7 @@ block content
                     .media-body
                         h4= admin.name
                         p= admin.email
-                        a(href=`/admin/${admin.id}/deleteadmin`, class='btn btn-warning')
-                            i.glyphicon.glyphicon-trash
-                        a(href=`/admin/${admin.id}/updateadmin`, class='btn btn-warning')
-                            i.glyphicon.glyphicon-edit
+                        p admin level: #{admin.role}
 
 
         else

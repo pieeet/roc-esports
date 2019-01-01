@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const oauth2 = require('../lib/oauth2');
+const verified = require('../lib/verified');
 // Use the oauth middleware to automatically get the user's profile
 // information and expose login/logout URLs to templates.
 router.use(oauth2.template);
@@ -13,9 +14,10 @@ const KIND_TOURNAMENT = "Tournament";
 const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
 
+const MIN_NAME = 5;
+
 // Automatically parse request body as form data
 router.use(bodyParser.urlencoded({extended: false}));
-
 
 
 // Set Content-Type for all responses for these routes
@@ -75,92 +77,62 @@ router.get('/tournaments', (reg, res, next) => {
     });
 });
 
-router.get('/:tournament/subscribe', oauth2.required, (req, res, next) => {
-    // get the tournament
-    getModel().read(KIND_TOURNAMENT, req.params.tournament, (err, ent) => {
-        if (err) {
-            next(err);
-            return;
-        }
-        let tournament = ent;
-        let start = new Date(tournament.starttime);
-        let end = new Date(tournament.endtime);
-        tournament.date = utils.prettyDate(start);
-        tournament.starttime = utils.prettyTime(start);
-        tournament.endtime = utils.prettyTime(end);
 
-        //get the game associated with the tournament
-        getModel().read(KIND_GAME, tournament.game, (err, ent) => {
+router.get('/profile', oauth2.required, (req, res, next) => {
+    // get the player profile associated with the logged in user
+    getModel().getPlayer(req.user.email, null, null, (err, ent) => {
             if (err) {
                 next(err);
                 return;
             }
-            tournament.game = ent;
-            // get the player profile associated with the logged in user
-            getModel().getPlayer(req.user.email, null, null, (err, ent) => {
-                if (err) {
-                    next(err);
-                    return;
+            // the query returns a list with one entity
+            let player = ent[0];
+            if (!player) {
+                player = {};
+            } else {
+                if (player.token === "verified") {
+                    player.verified = true;
                 }
-                // the query returns a list with one entity
-                let player = ent[0];
-                if (!player) {
-                    player = {};
-                } else {
-                    if (player.token === "verified") {
-                        player.verified = true;
-                    }
-                }
-                let actionPlayer;
-                // if existing player: set action update
-                // else: set action create
-                if (player.id) {
-                    actionPlayer = "Update";
-                } else {
-                    actionPlayer = "Create";
-                    // set player.id to avoid datastore crash @getSubscription()
-                    player.id = null;
-                }
-                // check if player is subscribed to this tournament
-                let subscriptionId;
-                let actionTournament;
-                getModel().getSubscription(tournament.id, player.id, (err, ent) => {
-                    if (err) {
-                        next(err);
-                        return;
-                    }
-                    if (ent === null || !ent.length) {
-                        actionTournament = "Subscribe";
-                        subscriptionId = null;
-                    } else {
-                        actionTournament = "Unsubscribe";
-                        subscriptionId = ent[0].id;
-                    }
-                    // make a list of subscribers
-                    getModel().getAttendees(tournament.id, (err, attendees) => {
-                        res.render('subscribeform', {
-                            tournament: tournament,
-                            player: player,
-                            actionplayer: actionPlayer,
-                            actiontournament: actionTournament,
-                            subscriptionId: subscriptionId,
-                            attendees: attendees
-                        });
-                    });
-                });
-            });
-        });
-    });
+            }
+            let actionPlayer;
+            // if existing player: set action update
+            // else: set action create
+            if (player.id) {
+                actionPlayer = "Update";
+            } else {
+                actionPlayer = "Create";
+            }
+            res.render('profile', {
+                player: player,
+                action: actionPlayer
+            })
+        }
+    )
 });
+
+function sanitizeProfileData(data) {
+    data.playername = data.playername.trim();
+    if (data.schoolmail) {
+        data.schoolmail = data.schoolmail.trim();
+    }
+    return data;
+}
 
 router.post('/createplayer',
     oauth2.required,
     images.multer.single('image'),
     images.sendUploadToGCS,
     (req, res, next) => {
-        const data = req.body;
-        const tournament = data.tournament;
-        delete data['tournament'];
+        let data = req.body;
+        data = sanitizeProfileData(data);
+        console.log(data.playername.length);
+        if (data.playername.length < MIN_NAME || !utils.checkValidSchoolMail(data.schoolmail)) {
+            res.render(`profileformconfirm`, {
+                player: data,
+                message: 'Provided data invalid. '
+            });
+            return;
+        }
 
         // Was an image uploaded? If so, we'll use its public URL
         // in cloud storage. Old file is deleted from storage.
@@ -174,22 +146,47 @@ router.post('/createplayer',
         data.email = req.user.email;
         const token = utils.makeVerificationToken(12);
         data.token = token;
-        getModel().create(KIND_PLAYER, data, (err, cb) => {
+        data.role = 0;
+        let errorMessage = '';
+        // check if the schoolmail isn't already in use
+        getModel().schoolmailAvailable(data.schoolmail, (err, available) => {
             if (err) {
                 next(err);
                 return;
             }
-            let isValid = utils.checkValidSchoolMail(data.schoolmail);
-            let message = '';
-            if (isValid) {
-                utils.startVerification(data.schoolmail, token);
+            if (available) {
+                getModel().playernameAvailable(data.playername, (err, available) => {
+                    if (err) {
+                        next(err);
+                        return;
+                    }
+                    if (available) {
+                        getModel().create(KIND_PLAYER, data, (err, cb) => {
+                            if (err) {
+                                next(err);
+                                return;
+                            }
+                            utils.startVerification(data.schoolmail, token);
+                            res.render(`profileformconfirm`, {
+                                player: data,
+                                message: errorMessage
+                            });
+                        });
+                    } else {
+                        errorMessage = 'Your chosen player name is already taken.';
+                        res.render(`profileformconfirm`, {
+                            player: data,
+                            message: errorMessage
+                        });
+                    }
+                });
             } else {
-                message = "You've entered a non-valid email address, please try again";
+                errorMessage = "The schoolmail address you've entered is already in use.";
+                res.render(`profileformconfirm`, {
+                    player: data,
+                    message: errorMessage
+                });
             }
-            res.render(`emailsent`, {
-                player: data,
-                message: message
-            });
         });
     }
 );
@@ -199,7 +196,8 @@ router.post('/updateplayer',
     images.multer.single('image'),
     images.sendUploadToGCS,
     (req, res, next) => {
-        const data = req.body;
+        let data = req.body;
+        data = sanitizeProfileData(data);
         // Was an image uploaded? If so, we'll use its public URL
         // in cloud storage. Old file is deleted from storage.
         let imgChanged = false;
@@ -209,71 +207,199 @@ router.post('/updateplayer',
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
             imgChanged = true;
         }
-        // get the player to maintain its current properties. Update is same as create
-        // in datastore except its id stays the same
-        getModel().read(KIND_PLAYER, data.playerid, (err, player) => {
+        const id = data.playerid.valueOf();
+        delete data.playerid;
+        getModel().read(KIND_PLAYER, id, (err, player) => {
             if (err) {
                 next(err);
                 return;
             }
-            // change its relevant properties
-            player.playername = data.playername;
+            //player changed image
             if (imgChanged) {
                 player.imageUrl = req.body.imageUrl;
             }
-            let emailsent = false;
-            let message = '';
-            // not yet verified and user changed his schoolmail --> resend verification mail
-            if (player.token !== 'verified' && data.schoolmail !== player.schoolmail) {
-                if (utils.checkValidSchoolMail(data.schoolmail)) {
-                    utils.sendVerificationEmail(data.schoolmail, player.token);
-                    emailsent = true;
-                    player.schoolmail = data.schoolmail;
+            // if schoolmail was sent, user is not yet verified. Don't bother with the other fields
+            if (data.schoolmail) {
+                if (!utils.checkValidSchoolMail(data.schoolmail)) {
+                    res.render(`profileformconfirm`, {
+                        player: data,
+                        message: 'Provided email is invalid.'
+                    });
+                    return;
+                }
+                // user changed email
+                if (data.schoolmail !== player.schoolmail) {
+                    getModel().schoolmailAvailable(data.schoolmail, (err, available) => {
+                        if (available) {
+                            // same token different email
+                            utils.startVerification(data.schoolmail, player.token);
+                            player.schoolmail = data.schoolmail;
+                            getModel().update(KIND_PLAYER, id, player, (err, cb) => {
+                                if (err) {
+                                    next(err);
+                                    return;
+                                }
+                                res.render(`profileformconfirm`, {
+                                    player: player,
+                                    message: ''
+                                });
+                            });
+                            // email not available, resend email
+                        } else {
+                            utils.startVerification(player.schoolmail, player.token);
+                            res.render(`profileformconfirm`, {
+                                player: player,
+                                message: `Your email could not be updated because the address you entered is already in use.' +
+                                    'A new email has been sent to ${player.schoolmail} `
+                            });
+                        }
+                    });
+                }
+                // nothing changed just resend email
+                else {
+                    utils.startVerification(player.schoolmail, player.token);
+                    res.render(`profileformconfirm`, {
+                        player: player,
+                        message: ''
+                    });
+                }
+            } else {
+                if (data.playername !== player.playername) {
+                    //name has changed
+                    if (data.playername.length < MIN_NAME) {
+                        res.render(`profileformconfirm`, {
+                            player: data,
+                            message: 'Provided name is too short.'
+                        });
+                        return;
+                    }
+                    getModel().playernameAvailable(data.playername, (err, available) => {
+                        if (available) {
+                            //verander naam player
+                            player.playername = data.playername;
+                            getModel().update(KIND_PLAYER, id, player, (err, cb) => {
+                                if (err) {
+                                    next(err);
+                                    return;
+                                }
+                                res.redirect('/profile');
+                            });
+                        } else {
+                            res.render(`profileformconfirm`, {
+                                player: player,
+                                message: `Sorry ${data.playername} is not available. Your data has not been changed`
+                            });
+                        }
+                    });
+                } else if (imgChanged) {
+                    // user apparently only changed img
+
+                    getModel().update(KIND_PLAYER, id, player, (err, cb) => {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
+                        res.redirect('/profile');
+                    });
+                    //player clicked button with nothing changed.
                 } else {
-                    message = "You've entered a non-valid email address, please try again";
+                    res.redirect('/profile');
                 }
             }
-            getModel().update(KIND_PLAYER, player.id, player, (err, cb) => {
+        });
+    }
+);
+
+
+router.get('/:tournament/subscribe',
+    oauth2.required,
+    verified.required,
+    (req, res, next) => {
+        // get the tournament
+        getModel().read(KIND_TOURNAMENT, req.params.tournament, (err, ent) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            let tournament = ent;
+            let start = new Date(tournament.starttime);
+            let end = new Date(tournament.endtime);
+            tournament.date = utils.prettyDate(start);
+            tournament.starttime = utils.prettyTime(start);
+            tournament.endtime = utils.prettyTime(end);
+
+            //get the game associated with the tournament
+            getModel().read(KIND_GAME, tournament.game, (err, ent) => {
                 if (err) {
                     next(err);
                     return;
                 }
-                // if an email is sent, notify player
-                if (emailsent) {
-                    res.render(`emailsent`, {
-                        player: data,
-                        message: message
+                tournament.game = ent;
+                // get the player profile associated with the logged in user
+                getModel().getPlayer(req.user.email, null, null, (err, ent) => {
+                    if (err) {
+                        next(err);
+                        return;
+                    }
+                    // the query returns a list with one entity
+                    let player = ent[0];
+                    // check if user is subscribed
+                    let subscriptionId;
+                    let actionTournament;
+                    getModel().getSubscription(tournament.id, player.id, (err, ent) => {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
+                        if (ent === null || !ent.length) {
+                            actionTournament = "Subscribe";
+                            subscriptionId = null;
+                        } else {
+                            actionTournament = "Unsubscribe";
+                            subscriptionId = ent[0].id;
+                        }
+                        // make a list of subscribers
+                        getModel().getAttendees(tournament.id, (err, attendees) => {
+                            res.render('subscribeform', {
+                                tournament: tournament,
+                                player: player,
+                                actiontournament: actionTournament,
+                                subscriptionId: subscriptionId,
+                                attendees: attendees
+                            });
+                        });
                     });
-
-                } else {
-                    res.redirect(`/${data.tournament}/subscribe`);
-                }
+                });
             });
         });
     }
 );
 
-router.post('/:tournament/subscribe', oauth2.required, (req, res, next) => {
-    const data = req.body;
-    const tournamentId = data.tournament_id;
-    if (data.subscription_id) {
-        const subscriptionId = data.subscription_id;
-        getModel().delete(KIND_PLAYER_TOURNAMENT, subscriptionId, (err, cb) => {
-            if (err) {
-                next(err);
-                return;
-            }
-            res.redirect(`/${tournamentId}/subscribe`);
-        });
-    } else {
-        getModel().create(KIND_PLAYER_TOURNAMENT, data, (err, cb) => {
-            if (err) {
-                next(err);
-                return;
-            }
-            res.redirect(`/${tournamentId}/subscribe`);
-        });
+router.post('/:tournament/subscribe',
+    oauth2.required,
+    verified.required,
+    (req, res, next) => {
+        const data = req.body;
+        const tournamentId = data.tournament_id;
+        if (data.subscription_id) {
+            const subscriptionId = data.subscription_id;
+            getModel().delete(KIND_PLAYER_TOURNAMENT, subscriptionId, (err, cb) => {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                res.redirect(`/${tournamentId}/subscribe`);
+            });
+        } else {
+            getModel().create(KIND_PLAYER_TOURNAMENT, data, (err, cb) => {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                res.redirect(`/${tournamentId}/subscribe`);
+            });
+        }
     }
-});
+);
 
 module.exports = router;
