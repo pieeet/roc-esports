@@ -1,27 +1,19 @@
-extends ../layout
+extends ../layout.pug
 
-
-block navbar
-    .navbar.navbar-default
-        .container
-
-            block navbar-header
-                .navbar-header
-                    .navbar-brand E-sports
-            block navbar-list
-                ul.nav.navbar-nav
-                    li
-                        a(href="/admin") Admins
-                    li
-                        a(href="/admin/tournaments") Tournaments/Games
-            block navbar-profile
-                // [START profile]
-                p.navbar-text.navbar-right
-                    if profile
-                        if profile.image
-                            img.img-circle(src=profile.image, width=24)
-                        span #{profile.displayName} &nbsp;
-                            a(href=logout) (logout)
-                    else
-                        a(href=login) Login
-                    // [END profile]
+block navbar-list
+    ul.nav.navbar-nav
+        li
+            a(href="/admin") Admins
+        li
+            a(href="/admin/tournaments") Tournaments/Games
+block navbar-profile
+    // [START profile]
+    p.navbar-text.navbar-right
+        if profile
+            if profile.image
+                img.img-circle(src=profile.image, width=24)
+            span #{profile.displayName} &nbsp;
+                a(href=logout) (logout)
+        else
+            a(href=login) Login
+        // [END profile]
