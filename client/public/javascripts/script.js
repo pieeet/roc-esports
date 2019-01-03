@@ -20,35 +20,28 @@ function signOut() {
         $("#signoutsection").hide();
     });
 }
-$(() => {
-    $("#send").click(()=>{
-       sendMessage({
-          name: $("#name").val(), 
-          message:$("#message").val()});
-        })
-      getMessages()
-    })
+// $(() => {
+//     $("#send").click(()=>{
+//        sendMessage({
+//           name: $("#name").val(),
+//           message:$("#message").val()});
+//         })
+//       getMessages()
+//     })
 
-function addMessages(message){
-   $("#messages").append(`
-      <h4> ${message.name} </h4>
-      <p>  ${message.message} </p>`)
-   }
+// function addMessages(message){
+//    $("#messages").append(`
+//       <h4> ${message.name} </h4>
+//       <p>  ${message.message} </p>`)
+//    }
+//
+// function getMessages(){
+//   $.get('http://localhost:3000/messages', (data) => {
+//    data.forEach(addMessages);
+//    })
+//  }
+//
+// function sendMessage(message){
+//    $.post('http://localhost:3000/messages', message)
+//  }
 
-function getMessages(){
-  $.get('http://localhost:3000/messages', (data) => {
-   data.forEach(addMessages);
-   })
- }
-
-function sendMessage(message){
-   $.post('http://localhost:3000/messages', message)
- }
-
-$(document).ready(function() {
-    $(".delete-admin-button").click(function() {
-        const id = $(this).data("admin-id");
-        console.log(id);
-        //TODO delete admin
-    });
-});

@@ -28,7 +28,7 @@ app.set('trust proxy', true);
 
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.urlencoded({extended: false}));
 
 app.use(yesHttps());
 //log requests in dev mode
@@ -99,7 +99,7 @@ app.use(function(req, res, next) {
 // error handler
 app.use(function(err, req, res, next) {
     // set locals, only providing error in development
-    res.locals.message = err.message;
+    // res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
 
     // render the error page
