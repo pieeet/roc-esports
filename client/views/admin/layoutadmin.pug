@@ -6,14 +6,4 @@ block navbar-list
             a(href="/admin") Admins
         li
             a(href="/admin/tournaments") Tournaments/Games
-block navbar-profile
-    // [START profile]
-    p.navbar-text.navbar-right
-        if profile
-            if profile.image
-                img.img-circle(src=profile.image, width=24)
-            span #{profile.displayName} &nbsp;
-                a(href=logout) (logout)
-        else
-            a(href=login) Login
-        // [END profile]
+
