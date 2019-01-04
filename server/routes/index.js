@@ -214,6 +214,8 @@ router.post('/updateplayer',
                 next(err);
                 return;
             }
+            // avoid id being separately stored
+            delete player.id;
             //player changed image
             if (imgChanged) {
                 player.imageUrl = req.body.imageUrl;
