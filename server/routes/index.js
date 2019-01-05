@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const oauth2 = require('../lib/oauth2');
-const verified = require('../lib/verified');
-// Use the oauth middleware to automatically get the user's profile
+// Use the oauth2 middleware to automatically get the user's profile
 // information and expose login/logout URLs to templates.
 router.use(oauth2.template);
+// Use the 'verified' middleware to automatically get the player's profile if verified is required
+const verified = require('../lib/verified');
 const utils = require('../lib/utils');
 const bodyParser = require('body-parser');
 const images = require('../lib/images');
@@ -337,41 +338,35 @@ router.get('/:tournament/subscribe',
                     return;
                 }
                 tournament.game = ent;
-                // get the player profile associated with the logged in user
-                getModel().getPlayer(req.user.email, null, null, (err, ent) => {
+                // get player from request. This is guaranteed because verified.required
+                let player = req.player;
+                // check if user is subscribed
+                let subscriptionId;
+                let actionTournament;
+                getModel().getSubscription(tournament.id, player.id, (err, ent) => {
                     if (err) {
                         next(err);
                         return;
                     }
-                    // the query returns a list with one entity
-                    let player = ent[0];
-                    // check if user is subscribed
-                    let subscriptionId;
-                    let actionTournament;
-                    getModel().getSubscription(tournament.id, player.id, (err, ent) => {
-                        if (err) {
-                            next(err);
-                            return;
-                        }
-                        if (ent === null || !ent.length) {
-                            actionTournament = "Subscribe";
-                            subscriptionId = null;
-                        } else {
-                            actionTournament = "Unsubscribe";
-                            subscriptionId = ent[0].id;
-                        }
-                        // make a list of subscribers
-                        getModel().getAttendees(tournament.id, (err, attendees) => {
-                            res.render('subscribeform', {
-                                tournament: tournament,
-                                player: player,
-                                actiontournament: actionTournament,
-                                subscriptionId: subscriptionId,
-                                attendees: attendees
-                            });
+                    if (ent === null || !ent.length) {
+                        actionTournament = "Subscribe";
+                        subscriptionId = null;
+                    } else {
+                        actionTournament = "Unsubscribe";
+                        subscriptionId = ent[0].id;
+                    }
+                    // make a list of subscribers
+                    getModel().getAttendees(tournament.id, (err, attendees) => {
+                        res.render('subscribeform', {
+                            tournament: tournament,
+                            player: player,
+                            actiontournament: actionTournament,
+                            subscriptionId: subscriptionId,
+                            attendees: attendees
                         });
                     });
                 });
+
             });
         });
     }
@@ -382,6 +377,7 @@ router.post('/:tournament/subscribe',
     verified.required,
     (req, res, next) => {
         const data = req.body;
+        data.player_id = req.player.id;
         const tournamentId = data.tournament_id;
         if (data.subscription_id) {
             const subscriptionId = data.subscription_id;

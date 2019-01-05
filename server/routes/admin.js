@@ -13,7 +13,6 @@ moment.tz.setDefault('Europe/Amsterdam');
 // information and expose login/logout URLs to templates.
 router.use(oauth2.template);
 
-const KIND_ADMIN = "Admin";
 const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
 
@@ -54,7 +53,6 @@ router.get('/creategame',
     adminauth.required,
     (req, res, next) => {
         res.render('admin/gameform.pug', {
-            admin: {},
             action: 'Add',
             game: {}
         });
@@ -84,7 +82,7 @@ router.post('/creategame',
         });
     });
 
-// reads admin and redirects to update form
+// reads game and redirects to update form
 router.get('/:game/updategame', oauth2.required, adminauth.required, (req, res, next) => {
     getModel().read(KIND_GAME, req.params.game, (err, entity) => {
         if (err) {
@@ -98,7 +96,7 @@ router.get('/:game/updategame', oauth2.required, adminauth.required, (req, res, 
     });
 });
 
-//update admin to datastore with post request
+//update game to datastore with post request
 router.post('/:game/updategame',
     oauth2.required,
     adminauth.required,
@@ -124,7 +122,7 @@ router.post('/:game/updategame',
     }
 );
 
-// delete admin from datastore
+// delete game from datastore
 router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, next) => {
     getModel().delete(KIND_GAME, req.params.game, (err) => {
         if (err) {
@@ -172,8 +170,7 @@ router.get('/tournaments',
                 }
                 res.render('admin/tournament.pug', {
                     games: games,
-                    tournaments: tournaments,
-                    admin: {}
+                    tournaments: tournaments
                 });
             });
         });
@@ -192,7 +189,6 @@ router.get('/createtournament',
             res.render('admin/tournamentform.pug', {
                 games: gameEntities,
                 action: "Add",
-                admin: {},
                 tournament: {}
             });
         });
@@ -223,10 +219,9 @@ router.post('/createtournament',
     }
 );
 
-// reads admin and redirects to update form
+// reads tournament and redirects to update form
 router.get('/:tournament/updatetournament', oauth2.required, adminauth.required, (req, res, next) => {
     let tournament = {};
-    let games = {};
     getModel().read(KIND_TOURNAMENT, req.params.tournament, (err, entity) => {
             if (err) {
                 next(err);
@@ -245,15 +240,14 @@ router.get('/:tournament/updatetournament', oauth2.required, adminauth.required,
                 res.render('admin/tournamentform.pug', {
                     games: gameEntities,
                     action: "Update",
-                    tournament: tournament,
-                    admin: {}
+                    tournament: tournament
                 });
             });
         }
     );
 });
 
-//update admin to datastore with post request
+//update tournament to datastore with post request
 router.post('/:tournament/updatetournament',
     oauth2.required,
     adminauth.required,
@@ -280,7 +274,7 @@ router.post('/:tournament/updatetournament',
     }
 );
 
-// delete admin from datastore
+// delete tournament from datastore
 router.get('/:tournament/deletetournament', oauth2.required, adminauth.required, (req, res, next) => {
     getModel().delete(KIND_TOURNAMENT, req.params.tournament, (err) => {
         if (err) {
