@@ -7,6 +7,7 @@ router.use(oauth2.template);
 // Use the 'verified' middleware to automatically get the player's profile if verified is required
 const verified = require('../lib/verified');
 const utils = require('../lib/utils');
+const emailutils = require('../lib/emailutils');
 const bodyParser = require('body-parser');
 const images = require('../lib/images');
 
@@ -134,7 +135,7 @@ router.post('/createplayer',
             });
             return;
         }
-        if (!utils.checkValidSchoolMail(data.schoolmail)) {
+        if (!emailutils.checkValidSchoolMail(data.schoolmail)) {
             res.render(`profileformconfirm`, {
                 player: data,
                 message: 'Schoolmail not valid. '
@@ -175,8 +176,10 @@ router.post('/createplayer',
                                 next(err);
                                 return;
                             }
-                            utils.startVerification(data.schoolmail, token);
-                            utils.sendWelcomeEmail(data.email);
+                            // send verification to schoolmail
+                            emailutils.startVerification(data.schoolmail, token);
+                            // send welcome message to gmail for whitelisting
+                            emailutils.sendWelcomeEmail(data.email);
                             res.render(`profileformconfirm`, {
                                 player: data,
                                 message: errorMessage
@@ -230,92 +233,100 @@ router.post('/updateplayer',
             if (imgChanged) {
                 player.imageUrl = req.body.imageUrl;
             }
-            // if schoolmail was sent, user is not yet verified. Don't bother with the other fields
+            // if schoolmail was sent, user is not yet verified. Don't bother with name field
+            // or it gets too complicated
             if (data.schoolmail) {
-                if (!utils.checkValidSchoolMail(data.schoolmail)) {
-                    res.render(`profileformconfirm`, {
-                        player: data,
-                        message: 'Provided email is invalid.'
-                    });
-                    return;
-                }
-                // user changed email
+                // [START UPDATE SCHOOLMAIL]
+                // user changed his schoolmail
                 if (data.schoolmail !== player.schoolmail) {
+                    // not valid... abort
+                    if (!utils.checkValidSchoolMail(data.schoolmail)) {
+                        return res.render(`profileformconfirm`, {
+                            player: data,
+                            message: 'Provided email is invalid.'
+                        });
+                    }
+                    // email is valid check available
                     getModel().schoolmailAvailable(data.schoolmail, (err, available) => {
                         if (available) {
                             // same token different email
-                            utils.startVerification(data.schoolmail, player.token);
+                            emailutils.startVerification(data.schoolmail, player.token);
                             player.schoolmail = data.schoolmail;
                             getModel().update(KIND_PLAYER, id, player, (err, cb) => {
                                 if (err) {
                                     next(err);
                                     return;
                                 }
-                                res.render(`profileformconfirm`, {
+                                return res.render(`profileformconfirm`, {
                                     player: player,
                                     message: ''
                                 });
                             });
-                            // email not available, resend email
+                        // email not available
                         } else {
-                            utils.startVerification(player.schoolmail, player.token);
                             res.render(`profileformconfirm`, {
                                 player: player,
-                                message: `Your email could not be updated because the address you entered is already in use.' +
-                                    'A new email has been sent to ${player.schoolmail} `
+                                message: 'School mail address already in use'
                             });
                         }
                     });
                 }
-                // nothing changed just resend email
+                // nothing changed just resend the verification email
                 else {
-                    utils.startVerification(player.schoolmail, player.token);
-                    res.render(`profileformconfirm`, {
+                    emailutils.startVerification(player.schoolmail, player.token);
+                    return res.render(`profileformconfirm`, {
                         player: player,
                         message: ''
                     });
-                }
+                } // [END UPDATE SCHOOLMAIL]
+            // schoolmail is not in form-data meaning player is already verified
             } else {
+                // player changed name
                 if (data.playername !== player.playername) {
-                    //name has changed
+                    // [START NAME CHANGE]
+                    //name has changed verify validity
                     if (data.playername.length < MIN_NAME) {
-                        res.render(`profileformconfirm`, {
+                        return res.render(`profileformconfirm`, {
                             player: data,
                             message: 'Provided name is too short.'
                         });
-                        return;
+                    } else {
+                        // verify availability
+                        getModel().playernameAvailable(data.playername, (err, available) => {
+                            if (available) {
+                                //verander naam player
+                                player.playername = data.playername;
+                                getModel().update(KIND_PLAYER, id, player, (err, cb) => {
+                                    if (err) {
+                                        next(err);
+                                        return;
+                                    }
+                                    return res.redirect('/profile');
+                                });
+                            // name not available
+                            } else {
+                                return res.render(`profileformconfirm`, {
+                                    player: player,
+                                    message: `${data.playername} is not available.`
+                                });
+                            }
+                        });
                     }
-                    getModel().playernameAvailable(data.playername, (err, available) => {
-                        if (available) {
-                            //verander naam player
-                            player.playername = data.playername;
-                            getModel().update(KIND_PLAYER, id, player, (err, cb) => {
-                                if (err) {
-                                    next(err);
-                                    return;
-                                }
-                                res.redirect('/profile');
-                            });
-                        } else {
-                            res.render(`profileformconfirm`, {
-                                player: player,
-                                message: `Sorry ${data.playername} is not available. Your data has not been changed`
-                            });
-                        }
-                    });
-                } else if (imgChanged) {
-                    // user apparently only changed img
-
+                } // [END NAME CHANGE]
+                // player only changed img
+                else if (imgChanged) {
                     getModel().update(KIND_PLAYER, id, player, (err, cb) => {
                         if (err) {
                             next(err);
                             return;
                         }
-                        res.redirect('/profile');
+                        return res.redirect('/profile');
                     });
-                    //player clicked button with nothing changed.
-                } else {
-                    res.redirect('/profile');
+
+                }
+                //player clicked button but nothing changed. Just redirect.
+                else {
+                    return res.redirect('/profile');
                 }
             }
         });
@@ -386,8 +397,9 @@ router.post('/:tournament/subscribe',
     verified.required,
     (req, res, next) => {
         const data = req.body;
-        data.player_id = req.player.id;
+        data.player_id = req.player.id; // see verified.required
         const tournamentId = data.tournament_id;
+        // if subscriptionId player is subscribed. TODO check security!
         if (data.subscription_id) {
             const subscriptionId = data.subscription_id;
             getModel().delete(KIND_PLAYER_TOURNAMENT, subscriptionId, (err, cb) => {
@@ -409,6 +421,7 @@ router.post('/:tournament/subscribe',
     }
 );
 
+// show confirmation page for editing purposes
 router.get('/test', (req, res, next) => {
     res.render('profileformconfirm', {
         player: {
