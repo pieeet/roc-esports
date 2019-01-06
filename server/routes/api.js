@@ -26,7 +26,7 @@ router.use((req, res, next) => {
  */
 router.get('/getAdmins', (req, res, next) => {
     //return admins in json format
-    getModel().listAdmins(null, null, (err, entities, cursor) => {
+    getModel().listAdmins(null, null, 1, (err, entities, cursor) => {
         if (err) {
             next(err);
             return;
