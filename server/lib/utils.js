@@ -48,10 +48,10 @@ function makeVerificationToken(size) {
 function startVerification(schoolmail, token) {
     // 2. make a random token
     let link = `${config.get('BASE_URL')}/api/${schoolmail}/${token}/verifytoken`;
-    sendEmail(schoolmail, link);
+    sendVerificationEmail(schoolmail, link);
 }
 
-function sendEmail(receiver, verificationlink) {
+function sendVerificationEmail(receiver, verificationlink) {
     const msg = {
         to: receiver,
         from: `${config.get("EMAIL_FROM")}`,
@@ -87,11 +87,26 @@ function checkValidSchoolMail(email) {
     return false;
 }
 
+function sendWelcomeEmail(email) {
+    const msg = {
+        to: email,
+        from: `${config.get("EMAIL_FROM")}`,
+        subject: 'Welcome to roc-esports: please whitelist us',
+        html: `<h2>Welcome to ROC-Esports!</h2>
+            <p>To receive future notifications about our tournaments on this e-mail address, please whitelist this email if 
+            it was sent to your spam folder.</p>
+            <p>Happy Gaming!</p>
+            <p>The roc-esports team</p>`,
+    };
+    sendgrid.send(msg);
+}
+
 
 module.exports = {
     prettyTime,
     prettyDate,
     makeVerificationToken,
     startVerification,
-    checkValidSchoolMail
+    checkValidSchoolMail,
+    sendWelcomeEmail
 };

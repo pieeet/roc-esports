@@ -127,10 +127,17 @@ router.post('/createplayer',
         let data = req.body;
         data = sanitizeProfileData(data);
         console.log(data.playername.length);
-        if (data.playername.length < MIN_NAME || !utils.checkValidSchoolMail(data.schoolmail)) {
+        if (data.playername.length < MIN_NAME) {
             res.render(`profileformconfirm`, {
                 player: data,
-                message: 'Provided data invalid. '
+                message: 'Player name too short. '
+            });
+            return;
+        }
+        if (!utils.checkValidSchoolMail(data.schoolmail)) {
+            res.render(`profileformconfirm`, {
+                player: data,
+                message: 'Schoolmail not valid. '
             });
             return;
         }
@@ -145,8 +152,7 @@ router.post('/createplayer',
         // only store imageUrl, file is stored in GCS
         delete data['image'];
         data.email = req.user.email;
-        const token = utils.makeVerificationToken(12);
-        data.token = token;
+
         data.role = 0;
         let errorMessage = '';
         // check if the schoolmail isn't already in use
@@ -162,12 +168,15 @@ router.post('/createplayer',
                         return;
                     }
                     if (available) {
+                        const token = utils.makeVerificationToken(12);
+                        data.token = token;
                         getModel().create(KIND_PLAYER, data, (err, cb) => {
                             if (err) {
                                 next(err);
                                 return;
                             }
                             utils.startVerification(data.schoolmail, token);
+                            utils.sendWelcomeEmail(data.email);
                             res.render(`profileformconfirm`, {
                                 player: data,
                                 message: errorMessage
@@ -399,5 +408,16 @@ router.post('/:tournament/subscribe',
         }
     }
 );
+
+router.get('/test', (req, res, next) => {
+    res.render('profileformconfirm', {
+        player: {
+            playername: "tester",
+            schoolmail: 'test@talnet.nl',
+            email: 'test@gmail.com'
+        },
+        message: ''
+    });
+});
 
 module.exports = router;

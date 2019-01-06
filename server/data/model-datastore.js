@@ -8,12 +8,10 @@ const ds = Datastore({
     projectId: config.get('GCLOUD_PROJECT')
 });
 
-const KIND_ADMIN = "Admin";
 const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
 const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
-const KIND_VERIFICATION = "VerifyPlayer";
 
 // [END config]
 

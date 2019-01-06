@@ -6,10 +6,30 @@ block content
         if message.length
             p Something went wrong. Message: #{message} Please try again.
         else
-            p An email with a verification link is being sent to #{player.schoolmail}. This could take a couple of
-            | minutes. It's rather likely it ended
-            | up in your spam folder. (We're working on that). So find the email and click the link, then come back here
-            | and check your profile. You can then subscribe to tournaments.
-
-        a.btn.btn-success(href='/profile') Ok
+            p.
+                An email with a verification link is - as we speak - being sent to #[code #{player.schoolmail}] to verify that you're
+                a student at an associated college and to make sure students have only one account to play with.
+                The email usually arrives within a couple of minutes. #[strong It's rather likely it will end up in your spam folder].
+                So finish reading the rest of the instructions on this page, then find the email and click the link. You
+                can then subscribe to our tournaments.
+            h3 Important: Don't miss out on our emails. Whitelist them!
+            p.
+                We're planning to keep you informed about upcoming tournaments and events through both  #[code #{player.schoolmail}] and
+                #[code #{player.email}]. If you do not want to miss these notifications, we urge
+                you to #[strong 'whitelist'] our email address in both email accounts. We've also sent a welcoming message to
+                #[code #{player.email}] so you can also easily whitelist our email address there. If you're having trouble finding the spam
+                folder in gmail, try #[a( href='https://goo.gl/3GLQng' target='_blank') this answer].
+            p.
+                In your spam folders mark the emails as "not spam", see images below. This should usually do the trick.
+            .row
+                .col-md-6
+                    figure
+                        img.figure-img.img-fluid(src='img/spam-example-gmail.png' alt='screenshot spam gmail')
+                        figcaption.figure-caption.text-center Example spam in Gmail
+                .col-md-6
+                    figure
+                        img.figure-img.img-fluid(src='img/spam-example-outlook.png' alt='screenshot spam outlook')
+                        figcaption.figure-caption.text-center Example spam in Outlook
+            p Happy Gaming,
+            p the roc-esports team
 
