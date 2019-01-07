@@ -233,7 +233,7 @@ function getAttendees(tournamentId, cb) {
                 read(KIND_PLAYER, ents[i].player_id, (err, player) => {
                     // console.log(player);
                     attendees.push(player);
-                    if (i === attendees.length -1) {
+                    if (i === ents.length -1) {
                         cb(null, attendees);
                     }
                 });
