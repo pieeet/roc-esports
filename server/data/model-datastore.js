@@ -231,9 +231,8 @@ function getAttendees(tournamentId, cb) {
         } else {
             for (let i = 0; i < ents.length; i++) {
                 read(KIND_PLAYER, ents[i].player_id, (err, player) => {
-                    // console.log(player);
                     attendees.push(player);
-                    if (i === ents.length -1) {
+                    if (attendees.length === ents.length) {
                         cb(null, attendees);
                     }
                 });
