@@ -26,7 +26,7 @@ block content
             if !player.verified
                 .form-group
                     label(for='schoolmail') Email school
-                    p Supported domains are: #[strong [YOUR_STUDENT_NR]@talnet.nl]
+                    p Supported domains are: #[strong #{'[STUDENT_NR]@talnet.nl'}]
                     input#schoolmail.form-control(type='text', name='schoolmail' value=player.schoolmail)
             .form-group.hidden
                 label(for="imageUrl") Player Image URL
