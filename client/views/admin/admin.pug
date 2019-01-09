@@ -7,7 +7,7 @@ block content
             each admin in admins
                 .media
                     .media-left
-                        img.admin-profile-pic.img-circle(src=admin.imageUrl ||
+                        img(src=admin.imageUrl ||
                         "/img/male-profile-pic-placeholder.png")
                     .media-body
                         h4= admin.name

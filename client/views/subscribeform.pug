@@ -27,12 +27,13 @@ block content
         h2 Subscribed
         if attendees.length
             each attendee in attendees
-                .media-left
-                    img(src= attendee.imageUrl ||
-                    "/img/male-profile-pic-placeholder.png")
-                .media-body
-                    br
-                    h4= attendee.playername
+                .attendee
+                    .media
+                        .media-left
+                            img.avatar(src= attendee.imageUrl ||
+                            "/img/male-profile-pic-placeholder.png")
+                        .media-body
+                            h4= attendee.playername
 
         else
             p No attendees yet. Be the first!

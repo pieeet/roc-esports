@@ -1,41 +1,40 @@
 html {
   overflow-y: scroll;
 }
-
 body {
   margin-bottom: 2em;
   font-size: 16px;
 }
-
 label, input, .media, form {
   padding: .5em;
   width: 100%;
   max-width: 400px;
 }
-
 .media {
-  border: 1px solid black;
+  border: 1px solid grey;
+  padding: 10px;
 }
-
-#profile-pic {
-  width: 50px;
-  height: 50px;
+.attendee .media {
+  width: 15em;
+  float: left;
+  margin-right: .5em;
+  margin-top: .5em;
 }
-
-.media-left img, .avatar {
+.media-left img {
   width: 60px;
   height: 60px;
-  margin-top: 10px;
-  margin-bottom: 10px;
 }
-
+.media-left img.avatar {
+  width: 30px;
+  height: 30px;
+}
+/* [START profileformconfirm] */
 figure img {
   width: 100%;
   overflow: hidden;
 }
-
 figcaption {
   font-style: italic;
 }
-
+/* [END profileformconfirm] */
 
