@@ -17,7 +17,7 @@ const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
 
 const MIN_NAME = 5;
-const MAX_NAME = 12;
+const MAX_NAME = 13;
 
 // Automatically parse request body as form data
 router.use(bodyParser.urlencoded({extended: false}));

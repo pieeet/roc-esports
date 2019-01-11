@@ -13,11 +13,12 @@ block content
         form(method='POST', enctype="multipart/form-data" action=`/${action.toLowerCase()}player`)
             .form-group
                 label(for='playername') Player Name:
-                p minimum of 5 characters needed
+                p minimum 5 max 13 characters
                 input#playername.form-control(type='text', name='playername', value=player.playername)
             .form-group
                 label(for="avatar") Avatar
                 img.avatar(src=player.imageUrl || "/img/male-profile-pic-placeholder.png")
+                p allowed formats: png, jpg/jpeg, gif
                 input#avatar.form-control(type="file", name="image")
             if player.id
                 .form-group.hidden
