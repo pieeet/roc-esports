@@ -17,6 +17,7 @@ const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
 
 const MIN_NAME = 5;
+const MAX_NAME = 12;
 
 // Automatically parse request body as form data
 router.use(bodyParser.urlencoded({extended: false}));
@@ -128,7 +129,7 @@ router.post('/createplayer',
         let data = req.body;
         data = sanitizeProfileData(data);
         console.log(data.playername.length);
-        if (data.playername.length < MIN_NAME) {
+        if (data.playername.length < MIN_NAME || data.playername.length > MAX_NAME) {
             res.render(`profileformconfirm`, {
                 player: data,
                 message: 'Player name too short. '
@@ -285,7 +286,7 @@ router.post('/updateplayer',
                 if (data.playername !== player.playername) {
                     // [START NAME CHANGE]
                     //name has changed verify validity
-                    if (data.playername.length < MIN_NAME) {
+                    if (data.playername.length < MIN_NAME || data.playername.length > MAX_NAME) {
                         return res.render(`profileformconfirm`, {
                             player: data,
                             message: 'Provided name is too short.'
