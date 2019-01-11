@@ -16,7 +16,9 @@ credentials and private keys. and add it to the root of your project. The file s
 - `"OAUTH2_CLIENT_SECRET"`: `"[YOUR CLIENT SECRET]"`,
 - `"OAUTH2_CALLBACK"`: `"localhost:3000/auth/google/callback"`,
 - `"CLOUD_BUCKET"`: `"[YOUR CLOUD BUCKET NAME]"`,
-- `"SECRET"`: `"[SOME RANDOM STRING]"`
+- `"SECRET"`: `"[SOME RANDOM STRING]"`,
+- `"SENDGRID_API_KEY"`: `"YOUR API KEY FROM SENDGRID"`,
+- `"EMAIL_FROM"`: `"YOUR FROM EMAIL"`
 
 Before you deploy to app engine change `OAUTH2CALLBACK` `localhost:3000` with your url
 1.  Install dependencies:
