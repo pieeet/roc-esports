@@ -10,6 +10,7 @@ const utils = require('../lib/utils');
 const emailutils = require('../lib/emailutils');
 const bodyParser = require('body-parser');
 const images = require('../lib/images');
+const moment = require('moment-timezone');
 
 const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
@@ -345,12 +346,19 @@ router.get('/:tournament/subscribe',
                 next(err);
                 return;
             }
+
             let tournament = ent;
             let start = new Date(tournament.starttime);
             let end = new Date(tournament.endtime);
+            let endreg = new Date(tournament.endreg);
+
             tournament.date = utils.prettyDate(start);
             tournament.starttime = utils.prettyTime(start);
             tournament.endtime = utils.prettyTime(end);
+            tournament.endreg = utils.prettyDate(endreg);
+
+            const inTime = Date.now() < endreg;
+
 
             //get the game associated with the tournament
             getModel().read(KIND_GAME, tournament.game, (err, ent) => {
@@ -383,7 +391,8 @@ router.get('/:tournament/subscribe',
                             player: player,
                             actiontournament: actionTournament,
                             subscriptionId: subscriptionId,
-                            attendees: attendees
+                            attendees: attendees,
+                            intime: inTime
                         });
                     });
                 });
@@ -411,6 +420,8 @@ router.post('/:tournament/subscribe',
                 res.redirect(`/${tournamentId}/subscribe`);
             });
         } else {
+            let now = moment.tz(new Date(), 'Europe/Amsterdam');
+            data.timestamp = now.utc().valueOf();
             getModel().create(KIND_PLAYER_TOURNAMENT, data, (err, cb) => {
                 if (err) {
                     next(err);
@@ -424,13 +435,14 @@ router.post('/:tournament/subscribe',
 
 // show confirmation page for editing purposes
 router.get('/test', (req, res, next) => {
-    res.render('profileformconfirm', {
+    res.render('profile', {
         player: {
-            playername: "tester",
-            schoolmail: 'test@talnet.nl',
-            email: 'test@gmail.com'
+            opleiding: 'Applicatieontwikkelaar'
         },
-        message: ''
+        profile: {
+            displayname: 'tester',
+        },
+        action: "Create"
     });
 });
 

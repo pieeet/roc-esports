@@ -11,13 +11,15 @@ function getModel() {
 // he will be redirected to a non-admin area.
 function adminRequired (req, res, next) {
     // 1 is the lowest admin level.
-    getModel().isAdmin(req.user.email, 1, (err, isAdmin) => {
+    getModel().isAdmin(req.user.email, 1, (err, admin) => {
         if (err) {
             next(err);
             return;
         }
-        if (!isAdmin) {
+        if (admin === null) {
             return res.redirect('/tournaments');
+        } else {
+            req.admin = admin;
         }
         next();
     });

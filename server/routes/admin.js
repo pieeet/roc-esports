@@ -53,7 +53,7 @@ router.get('/creategame',
     adminauth.required,
     (req, res, next) => {
         res.render('admin/gameform.pug', {
-            action: 'Add',
+            action: 'Create',
             game: {}
         });
     }
@@ -103,35 +103,47 @@ router.post('/:game/updategame',
     images.multer.single('image'),
     images.sendUploadToGCS,
     (req, res, next) => {
-        const data = req.body;
-        const id = req.params.game;
-        // Was an image uploaded? If so, we'll use its public URL
-        // in cloud storage.
-        if (req.file && req.file.cloudStoragePublicUrl) {
-            const oldImageUrl = data.imageUrl.valueOf();
-            images.deleteImage(oldImageUrl);
-            req.body.imageUrl = req.file.cloudStoragePublicUrl;
+        let admin = req.admin;
+        if (admin.role >= 4) {
+            const data = req.body;
+            const id = req.params.game;
+            // Was an image uploaded? If so, we'll use its public URL
+            // in cloud storage.
+            if (req.file && req.file.cloudStoragePublicUrl) {
+                const oldImageUrl = data.imageUrl.valueOf();
+                images.deleteImage(oldImageUrl);
+                req.body.imageUrl = req.file.cloudStoragePublicUrl;
+            }
+            getModel().update(KIND_GAME, id, data, (err, savedData) => {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                res.redirect('/admin/tournaments');
+            });
+        } else {
+            res.redirect('/admin/tournaments');
         }
-        getModel().update(KIND_GAME, id, data, (err, savedData) => {
+
+    }
+);
+
+// delete game from datastore
+router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, next) => {
+    let admin = req.admin;
+    if (admin.role >= 4) {
+        getModel().delete(KIND_GAME, req.params.game, (err) => {
             if (err) {
                 next(err);
                 return;
             }
             res.redirect('/admin/tournaments');
         });
-    }
-);
-
-// delete game from datastore
-router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().delete(KIND_GAME, req.params.game, (err) => {
-        if (err) {
-            next(err);
-            return;
-        }
+    } else {
         res.redirect('/admin/tournaments');
-    });
+    }
 });
+
 // [END GAMES]
 
 // [START TOURNAMENTS]
@@ -139,6 +151,7 @@ router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, 
 router.get('/tournaments',
     oauth2.required,
     adminauth.required, (req, res, next) => {
+    let admin = req.admin;
         let games = {};
         let tournaments = {};
         getModel().listGames(null, null, (err, gameEntities, cursor) => {
@@ -170,7 +183,8 @@ router.get('/tournaments',
                 }
                 res.render('admin/tournament.pug', {
                     games: games,
-                    tournaments: tournaments
+                    tournaments: tournaments,
+                    admin: admin
                 });
             });
         });
@@ -181,6 +195,10 @@ router.get('/createtournament',
     oauth2.required,
     adminauth.required,
     (req, res, next) => {
+        let admin = req.admin;
+        let tournament = {};
+        //form needs a game property
+        tournament.game = {};
         getModel().listGames(null, null, (err, gameEntities, cursor) => {
             if (err) {
                 next(err);
@@ -188,8 +206,9 @@ router.get('/createtournament',
             }
             res.render('admin/tournamentform.pug', {
                 games: gameEntities,
-                action: "Add",
-                tournament: {}
+                action: "Create",
+                tournament: tournament,
+                admin: admin
             });
         });
     }
@@ -203,11 +222,13 @@ router.post('/createtournament',
         //interpret entry dates from dutch timezone
         let starttime = moment.tz(data.date + 'T' + data.starttime, 'Europe/Amsterdam');
         let endtime = moment.tz(data.date + 'T' + data.endtime, 'Europe/Amsterdam');
+        let endreg = moment.tz(data.endreg + 'T' + '00:00', 'Europe/Amsterdam');
         // no need to store date
         delete data['date'];
         // save date as utc
         data['starttime'] = starttime.utc().valueOf();
         data['endtime'] = endtime.utc().valueOf();
+        data['endreg'] = endreg.utc().valueOf();
 
         getModel().create(KIND_TOURNAMENT, data, (err, savedData) => {
             if (err) {
@@ -231,17 +252,29 @@ router.get('/:tournament/updatetournament', oauth2.required, adminauth.required,
             tournament.date = utils.prettyDate(new Date(tournament.starttime));
             tournament.starttime = utils.prettyTime(new Date(tournament.starttime));
             tournament.endtime = utils.prettyTime(new Date(tournament.endtime));
+            tournament.endreg = utils.prettyDate(new Date(tournament.endreg));
+
 
             getModel().listGames(null, null, (err, gameEntities, cursor) => {
                 if (err) {
                     next(err);
                     return;
                 }
-                res.render('admin/tournamentform.pug', {
-                    games: gameEntities,
-                    action: "Update",
-                    tournament: tournament
-                });
+                for (let i = 0; i < gameEntities.length; i++) {
+                    if (gameEntities[i].id === tournament.game) {
+                        tournament.game = gameEntities[i];
+                    }
+
+                    if (i === gameEntities.length - 1) {
+                        console.log(tournament.game);
+                        res.render('admin/tournamentform.pug', {
+                            games: gameEntities,
+                            action: "Update",
+                            tournament: tournament
+                        });
+                    }
+                }
+
             });
         }
     );
@@ -258,11 +291,13 @@ router.post('/:tournament/updatetournament',
         const id = req.params.tournament;
         let starttime = moment.tz(data.date + 'T' + data.starttime, 'Europe/Amsterdam');
         let endtime = moment.tz(data.date + 'T' + data.endtime, 'Europe/Amsterdam');
+        let endreg = moment.tz(data.endreg + 'T' + '00:00', 'Europe/Amsterdam');
         // no need to store date
         delete data['date'];
         // save date as utc timestamp
         data['starttime'] = starttime.utc().valueOf();
         data['endtime'] = endtime.utc().valueOf();
+        data['endreg'] = endreg.utc().valueOf();
 
         getModel().update(KIND_TOURNAMENT, id, data, (err, savedData) => {
             if (err) {

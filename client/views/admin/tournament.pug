@@ -4,9 +4,10 @@ block content
     .container
 
         h2 Games
-        a(href="/admin/creategame", class='btn btn-success btn-sm')
-            i.glyphicon.glyphicon-plus
-            span  Add game
+        if admin.role >= 4
+            a(href="/admin/creategame", class='btn btn-success btn-sm')
+                i.glyphicon.glyphicon-plus
+                span  Add game
         if games.length
             each game in games
                 .media
@@ -15,17 +16,19 @@ block content
                         "/img/male-profile-pic-placeholder.png")
                     .media-body
                         h4= game.name
-                        a(href=`/admin/${game.id}/deletegame`, class='btn btn-warning')
-                            i.glyphicon.glyphicon-trash
-                        a(href=`/admin/${game.id}/updategame`, class='btn btn-warning')
-                            i.glyphicon.glyphicon-edit
+                        if admin.role >= 4
+                            a(href=`/admin/${game.id}/deletegame`, class='btn btn-warning')
+                                i.glyphicon.glyphicon-trash
+                            a(href=`/admin/${game.id}/updategame`, class='btn btn-warning')
+                                i.glyphicon.glyphicon-edit
         else
             h3 No games yet. Add a game.
 
         h2 Tournaments
-        a(href="/admin/createtournament", class='btn btn-success btn-sm')
-            i.glyphicon.glyphicon-plus
-            span  Add Tournament
+        if admin.role >= 4
+            a(href="/admin/createtournament", class='btn btn-success btn-sm')
+                i.glyphicon.glyphicon-plus
+                span  Add Tournament
         if tournaments.length
             each tournament in tournaments
                 .media
@@ -38,11 +41,18 @@ block content
                         p start time: #{tournament.starttime}
                         p end time: #{tournament.endtime}
                         p location: #{tournament.location}
-                        a(href=`/admin/${tournament.id}/deletetournament`, class='btn btn-warning')
-                            i.glyphicon.glyphicon-trash
-                        a(href=`/admin/${tournament.id}/updatetournament`, class='btn btn-warning')
-                            i.glyphicon.glyphicon-edit
+                        if admin.role >= 4
+                            a(href=`/admin/${tournament.id}/deletetournament`, class='btn btn-warning')
+                                i.glyphicon.glyphicon-trash
+                            a(href=`/admin/${tournament.id}/updatetournament`, class='btn btn-warning')
+                                i.glyphicon.glyphicon-edit
 
         else
             h3 No upcoming tournaments.
 
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                $('#tournaments').addClass('active');
+            }
+        );

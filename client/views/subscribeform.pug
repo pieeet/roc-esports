@@ -9,10 +9,18 @@ block content
                 "/img/male-profile-pic-placeholder.png")
             .media-body
                 h4= tournament.game.name
-                p date: #{tournament.date}
-                p start time: #{tournament.starttime}
-                p end time: #{tournament.endtime}
-                p location: #{tournament.location}
+                p date: &nbsp;
+                    code  #{tournament.date}
+                p start time: &nbsp;
+                    code  #{tournament.starttime}
+                p end time: &nbsp;
+                    code  #{tournament.endtime}
+                p registration ends: &nbsp;
+                    code  #{tournament.endreg} 00:00
+                p max players: &nbsp;
+                    code  #{tournament.maxplayers}
+                p location: &nbsp;
+                    code  #{tournament.location}
 
                 form(method='POST')
                     if subscriptionId
@@ -22,19 +30,31 @@ block content
                     .form-group.hidden
                         label(for="tournamentid") Tournament ID
                         input#tournamentid.form-control(type="text", name="tournament_id",  value=tournament.id)
-                    .form-group
-                        button#subscribe-button.btn.btn-success(type='submit') #{actiontournament}
+                    if intime
+                        .form-group
+                            button#subscribe-button.btn.btn-warning(type='submit')
+                                i.glyphicon.glyphicon-send
+                                span &nbsp;#{actiontournament}
+                    else
+                        p Sorry registration is closed
         h2 Subscribed
         if attendees.length
             each attendee in attendees
-                .attendee
+                .floating-list
                     .media
                         .media-left
                             img.avatar(src= attendee.imageUrl ||
                             "/img/male-profile-pic-placeholder.png")
                         .media-body
-                            h4= attendee.playername
+                            h5= attendee.playername
+                            p.opleiding= attendee.opleiding
 
         else
             p No attendees yet. Be the first!
 
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                $('#tournaments').addClass('active');
+            }
+        );

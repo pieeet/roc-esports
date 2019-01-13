@@ -5,15 +5,23 @@ block content
         h2 Admins
         if admins && admins.length
             each admin in admins
-                .media
-                    .media-left
-                        img(src=admin.imageUrl ||
-                        "/img/male-profile-pic-placeholder.png")
-                    .media-body
-                        h4= admin.name
-                        p= admin.email
-                        p admin level: #{admin.role}
+                .floating-list
+                    .media
+                        .media-left
+                            img.avatar(src=admin.imageUrl ||
+                            "/img/male-profile-pic-placeholder.png")
+                        .media-body
+                            h5= admin.playername
+                            p= admin.email
+                            p admin level: #{admin.role}
 
 
         else
             p No admins registered yet
+
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                $('#admins').addClass('active');
+            }
+        );

@@ -8,29 +8,63 @@ block content
                 p You haven't verified your school email yet! To resend the verification email, submit the form
                 | again and make sure the school e-mail address is correct. Also check your spam folder!.
         else
-            h2 Welcome #{profile.displayName}! let's create your game profile.
+            h2 Welcome #{profile.displayName}! let's create your player profile.
+        .col-md-8
+            .well.bs-component
+                form.form-horizontal(method='POST', enctype="multipart/form-data" action=`/${action.toLowerCase()}player`)
+                    fieldset
+                        legend
+                            img.avatar(src=player.imageUrl || '/img/male-profile-pic-placeholder.png')
+                            span &nbsp; Profile
+                        .form-group
+                            label.col-md-4(for='playername') Player Name:
+                            .col-md-8
+                                input#playername.form-control(type='text', name='playername', value=player.playername required)
+                                span.help-block minimum 5 max 13 characters
+                        .form-group
+                            label.col-md-4(for="avatar") Avatar:
+                            .col-md-8
+                                input#avatar.form-control.col-md-10(type="file", name="image")
+                                span.help-block allowed formats: png, jpg/jpeg, gif
 
-        form(method='POST', enctype="multipart/form-data" action=`/${action.toLowerCase()}player`)
-            .form-group
-                label(for='playername') Player Name:
-                p minimum 5 max 13 characters
-                input#playername.form-control(type='text', name='playername', value=player.playername)
-            .form-group
-                label(for="avatar") Avatar
-                img.avatar(src=player.imageUrl || "/img/male-profile-pic-placeholder.png")
-                p allowed formats: png, jpg/jpeg, gif
-                input#avatar.form-control(type="file", name="image")
-            if player.id
-                .form-group.hidden
-                    label(for="playerid") Player ID
-                    input#playerid.form-control(type="text", name="playerid",  value=player.id)
-            if !player.verified
-                .form-group
-                    label(for='schoolmail') Email school
-                    p Supported domains are: #[strong #{'[STUDENT_NR]@talnet.nl'}]
-                    input#schoolmail.form-control(type='text', name='schoolmail' value=player.schoolmail)
-            .form-group.hidden
-                label(for="imageUrl") Player Image URL
-                input#imageUrl.form-control(type="text", name="imageUrl",  value=player.imageUrl)
-            .form-group
-                button#add-game-button.btn.btn-success(type='submit') #{action} profile
+                        if player.id
+                            .form-group.hidden
+                                label(for="playerid") Player ID
+                                input#playerid.form-control(type="text", name="playerid",  value=player.id)
+                        .form-group
+                            label.col-md-4(for="school") School:
+                            .col-md-8
+                                select#school.form-control(name='school' required)
+                                    option(value='') Choose...
+                                    option(value='ROC-Flevoland' selected) ROC-Flevoland
+
+                        .form-group
+                            label.col-md-4(for="opleiding") Study
+                            .col-md-8
+                                select#opleiding.form-control(name='opleiding' required)
+                                    option(value=player.opleiding || '' selected) #{player.opleiding || 'Choose...'}
+                                    option(value='Applicatieontwikkelaar') Applicatieontwikkelaar
+                                    option(value="ICT'er") ICT'er
+                                    option(value='Mediavormgever') Mediavormgever
+
+                        if !player.verified
+                            .form-group
+                                label.col-md-4(for='schoolmail') Email school
+                                .col-md-8
+                                    input#schoolmail.form-control(type='text', name='schoolmail' value=player.schoolmail required)
+                                    span.help-block Supported domains are: ...#[strong #{'@talnet.nl'}]
+                        .form-group.hidden
+                            label(for="imageUrl") Player Image URL
+                            input#imageUrl.form-control(type="text", name="imageUrl",  value=player.imageUrl)
+                        .col-md-4
+                        .form-group.col-md-8
+                            button.btn.btn-warning(type='submit')
+                                i.glyphicon.glyphicon-cloud-upload
+                                span &nbsp;#{action} profile
+
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                $('#profile').addClass('active');
+            }
+        );

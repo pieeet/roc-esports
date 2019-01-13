@@ -169,6 +169,7 @@ function listTournaments(limit, token, startDate, cb) {
     });
 }
 
+// returns admin or null
 function isAdmin(email, minrole, cb) {
     const q = ds.createQuery([KIND_PLAYER])
         .limit(1)
@@ -180,9 +181,12 @@ function isAdmin(email, minrole, cb) {
             cb(err);
             return;
         }
-        let isAdmin = players[0].role >= minrole;
-        cb(null, isAdmin);
-    })
+        let admin = null;
+        if (players[0].role >= minrole) {
+           admin = players[0];
+        }
+        cb(null, admin);
+    });
 }
 
 function listPlayers(limit, token, minrole, cb) {
@@ -220,6 +224,7 @@ function getAttendees(tournamentId, cb) {
     let attendees = [];
     const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
         .filter('tournament_id', '=', tournamentId);
+
     ds.runQuery(q, (err, ents, nextQuery) => {
         if (err) {
             cb(err);
@@ -231,8 +236,12 @@ function getAttendees(tournamentId, cb) {
         } else {
             for (let i = 0; i < ents.length; i++) {
                 read(KIND_PLAYER, ents[i].player_id, (err, player) => {
+                    player.timestamp = ents[i].timestamp;
                     attendees.push(player);
                     if (attendees.length === ents.length) {
+                        //sort array based on playername
+                        attendees.sort(function(a,b) {return (a.timestamp > b.timestamp) ? 1 :
+                            ((b.timestamp > a.timestamp) ? -1 : 0);} );
                         cb(null, attendees);
                     }
                 });

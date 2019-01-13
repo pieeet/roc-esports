@@ -16,7 +16,7 @@ block content
                         p start time: #{tournament.starttime}
                         p end time: #{tournament.endtime}
                         p location: #{tournament.location}
-                        a.btn.btn-success(href=`/${tournament.id}/subscribe`)
+                        a.btn.btn-warning(href=`/${tournament.id}/subscribe`)
                             i.glyphicon.glyphicon-list-alt
                             span &nbsp; To tournament
 
@@ -28,3 +28,9 @@ block content
 
 
 
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                $('#tournaments').addClass('active');
+            }
+        );

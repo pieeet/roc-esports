@@ -2,16 +2,32 @@ extends layoutadmin
 
 block content
     .container
-        h2 #{action} Game
-        form(method='POST', enctype="multipart/form-data")
-            .form-group
-                label(for='game-name') Name:
-                input#game-name(type='text', name='name', value=game.name)
-            .form-group
-                label(for="game-image") Game image
-                input#game-image.form-control(type="file", name="image")
-            .form-group.hidden
-                label(for="imageUrl") Game Image URL
-                input#imageUrl.form-control(type="text", name="imageUrl",  value=game.imageUrl)
-            .form-group
-                button#add-game-button.btn.btn-success(type='submit') #{action} game
+        .col-md-8
+            .col-md-12
+                .well.bs-component
+                    form.form-horizontal(method='POST', enctype="multipart/form-data")
+                        fieldset
+                            legend #{action} Game
+                        .form-group
+                            label.col-md-4(for='game-name') Name:
+                            .col-md-8
+                                input#game-name(type='text', name='name', value=game.name)
+                        .form-group
+                            label.col-md-4(for="game-image") Game image
+                            .col-md-8
+                                input#game-image.form-control(type="file", name="image")
+                        .form-group.hidden
+                            label.col-md-4(for="imageUrl") Game Image URL
+                            .col-md-8
+                                input#imageUrl.form-control(type="text", name="imageUrl",  value=game.imageUrl)
+                        .form-group
+                            .col-md-4
+                            .col-md-8
+                                button#add-game-button.btn.btn-success(type='submit') #{action} game
+
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                $('#tournaments').addClass('active');
+            }
+        );
