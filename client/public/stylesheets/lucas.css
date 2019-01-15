@@ -72,6 +72,7 @@ body {
     -------------------------*/
 .bg {
     position: fixed;
+    background-color: #090816;
     background-image: url("../img/bg.jpeg");
     background-repeat: no-repeat;
     background-size: 105vw 105vh;
