@@ -39,8 +39,8 @@ block content
                         p Sorry registration is closed
         h2 Subscribed
         if attendees.length
-            each attendee in attendees
-                .floating-list
+            .floating-list
+                each attendee in attendees
                     .media
                         .media-left
                             img.avatar(src= attendee.imageUrl ||

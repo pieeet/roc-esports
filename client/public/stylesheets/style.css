@@ -9,14 +9,12 @@ label, input, .media, form {
   padding: .5em;
   width: 100%;
 }
-.media {
-  padding: 20px;
-}
+
 .floating-list .media {
   width: 220px;
   float: left;
   margin-right: 10px;
-  margin-top: .5em;
+  margin-top: 10px;
 }
 .floating-list p {
   font-size: 11px;
