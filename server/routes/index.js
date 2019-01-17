@@ -433,17 +433,8 @@ router.post('/:tournament/subscribe',
     }
 );
 
-// show confirmation page for editing purposes
-router.get('/test', (req, res, next) => {
-    res.render('profile', {
-        player: {
-            opleiding: 'Applicatieontwikkelaar'
-        },
-        profile: {
-            displayname: 'tester',
-        },
-        action: "Create"
-    });
+router.get('/verifiedconfirm', (req, res, next) => {
+    return res.render('verifiedconfirm');
 });
 
 module.exports = router;

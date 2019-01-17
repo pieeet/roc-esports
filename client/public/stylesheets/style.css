@@ -33,6 +33,9 @@ img.avatar {
   height: 30px;
   margin-top: 0;
 }
+.btn {
+    margin-left: 10px;
+}
 
 /* [START profileformconfirm] */
 figure img {

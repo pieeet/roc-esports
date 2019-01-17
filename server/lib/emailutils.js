@@ -30,6 +30,7 @@ function sendVerificationEmail(receiver, verificationlink) {
         html: `<h2>Thanks for subscribing to roc-esports!</h2>
             <p>Before you can subscribe to our tournaments you have to verify this email address by 
             clicking <a href='${verificationlink}'>this link</a>.</p>
+            <p>After verification you can subscribe to our tournaments.</p>
             <p>Happy Gaming!</p>
             <p>The roc-esports team</p>`,
     };

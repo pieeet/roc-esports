@@ -44,7 +44,7 @@ router.get('/:email/:token/verifytoken', (req, res, next) => {
             next(err);
         }
         if (cb === 200) {
-            res.redirect('/profile');
+            res.redirect('/verifiedconfirm');
         }
     });
 });

@@ -16,17 +16,11 @@ block content
                         p start time: #{tournament.starttime}
                         p end time: #{tournament.endtime}
                         p location: #{tournament.location}
-                        a.btn.btn-warning(href=`/${tournament.id}/subscribe`)
+                        a.btn.btn-lg.btn-warning(href=`/${tournament.id}/subscribe`)
                             i.glyphicon.glyphicon-list-alt
                             span &nbsp; To tournament
-
-
         else
             h3 No upcoming tournaments.
-
-
-
-
 
     script(type='text/javascript').
         $(document).ready(

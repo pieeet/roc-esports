@@ -2,10 +2,9 @@ extends layoutadmin
 
 block content
     .container
-
         h2 Games
         if admin.role >= 4
-            a(href="/admin/creategame", class='btn btn-success btn-sm')
+            a.btn.btn-lg.btn-success(href="/admin/creategame")
                 i.glyphicon.glyphicon-plus
                 span  Add game
         if games.length
@@ -17,16 +16,16 @@ block content
                     .media-body
                         h4= game.name
                         if admin.role >= 4
-                            a(href=`/admin/${game.id}/deletegame`, class='btn btn-warning')
+                            a.btn.btn-lg.btn-warning(href=`/admin/${game.id}/deletegame`)
                                 i.glyphicon.glyphicon-trash
-                            a(href=`/admin/${game.id}/updategame`, class='btn btn-warning')
+                            a.btn.btn-lg.btn-warning(href=`/admin/${game.id}/updategame`)
                                 i.glyphicon.glyphicon-edit
         else
             h3 No games yet. Add a game.
 
         h2 Tournaments
         if admin.role >= 4
-            a(href="/admin/createtournament", class='btn btn-success btn-sm')
+            a.btn.btn-success.btn-lg(href="/admin/createtournament")
                 i.glyphicon.glyphicon-plus
                 span  Add Tournament
         if tournaments.length
@@ -42,11 +41,10 @@ block content
                         p end time: #{tournament.endtime}
                         p location: #{tournament.location}
                         if admin.role >= 4
-                            a(href=`/admin/${tournament.id}/deletetournament`, class='btn btn-warning')
+                            a.btn.btn-lg.btn-warning(href=`/admin/${tournament.id}/deletetournament`)
                                 i.glyphicon.glyphicon-trash
-                            a(href=`/admin/${tournament.id}/updatetournament`, class='btn btn-warning')
+                            a.btn.btn-lg.btn-warning(href=`/admin/${tournament.id}/updatetournament`)
                                 i.glyphicon.glyphicon-edit
-
         else
             h3 No upcoming tournaments.
 
