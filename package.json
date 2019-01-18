@@ -13,7 +13,8 @@
     "node": ">=8"
   },
   "scripts": {
-    "deploy": "gcloud app deploy",
+    "deploy": "gcloud app deploy --version=1",
+    "deploy-test": "gcloud app deploy --no-promote --version=2 ",
     "start": "node app.js",
     "set-project": "gcloud config set project roc-esports",
     "lint": "repo-tools lint",

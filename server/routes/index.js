@@ -133,7 +133,7 @@ router.post('/createplayer',
         if (data.playername.length < MIN_NAME || data.playername.length > MAX_NAME) {
             res.render(`profileformconfirm`, {
                 player: data,
-                message: 'Player name too short. '
+                message: 'Player name too short or too long. '
             });
             return;
         }
@@ -229,6 +229,8 @@ router.post('/updateplayer',
                 next(err);
                 return;
             }
+            player.school = data.school;
+            player.opleiding = data.opleiding;
             // avoid id being separately stored
             delete player.id;
             //player changed image
@@ -290,7 +292,7 @@ router.post('/updateplayer',
                     if (data.playername.length < MIN_NAME || data.playername.length > MAX_NAME) {
                         return res.render(`profileformconfirm`, {
                             player: data,
-                            message: 'Provided name is too short.'
+                            message: 'Provided name is too short or too long.'
                         });
                     } else {
                         // verify availability
@@ -315,8 +317,7 @@ router.post('/updateplayer',
                         });
                     }
                 } // [END NAME CHANGE]
-                // player only changed img
-                else if (imgChanged) {
+                else {
                     getModel().update(KIND_PLAYER, id, player, (err, cb) => {
                         if (err) {
                             next(err);
@@ -324,11 +325,6 @@ router.post('/updateplayer',
                         }
                         return res.redirect('/profile');
                     });
-
-                }
-                //player clicked button but nothing changed. Just redirect.
-                else {
-                    return res.redirect('/profile');
                 }
             }
         });
