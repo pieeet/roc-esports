@@ -36,6 +36,9 @@ img.avatar {
 .btn {
     margin-left: 10px;
 }
+.content {
+  margin-top: 70px;
+}
 
 /* [START profileformconfirm] */
 figure img {
