@@ -39,13 +39,9 @@ block content
                                     option(value='ROC-Flevoland' selected) ROC-Flevoland
 
                         .form-group
-                            label.col-md-4(for="opleiding") Study
+                            label.col-md-4(for="opleiding") Study (e.g. Mediavormgever)
                             .col-md-8
-                                select#opleiding.form-control(name='opleiding' required)
-                                    option(value=player.opleiding || '' selected) #{player.opleiding || 'Choose...'}
-                                    option(value='Applicatieontwikkelaar') Applicatieontwikkelaar
-                                    option(value="ICT'er") ICT'er
-                                    option(value='Mediavormgever') Mediavormgever
+                                input#opleiding.form-control(name='opleiding' value=player.opleiding || '' required)
 
                         if !player.verified
                             .form-group
