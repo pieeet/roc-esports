@@ -234,16 +234,25 @@ function getAttendees(tournamentId, cb) {
         if (!ents.length) {
             cb(null, attendees);
         } else {
+            let nEntities = ents.length;
             for (let i = 0; i < ents.length; i++) {
                 read(KIND_PLAYER, ents[i].player_id, (err, player) => {
-                    player.timestamp = ents[i].timestamp;
-                    attendees.push(player);
-                    if (attendees.length === ents.length) {
-                        //sort array based on playername
-                        attendees.sort(function(a,b) {return (a.timestamp > b.timestamp) ? 1 :
-                            ((b.timestamp > a.timestamp) ? -1 : 0);} );
-                        cb(null, attendees);
+                    if (err) {
+                        //if player cannot be found
+                        nEntities--;
                     }
+                    if (player) {
+                        player.timestamp = ents[i].timestamp;
+                        attendees.push(player);
+                        if (attendees.length === nEntities) {
+                            //sort array based on playername
+                            attendees.sort(function(a,b) {return (a.timestamp > b.timestamp) ? 1 :
+                                ((b.timestamp > a.timestamp) ? -1 : 0);} );
+                            cb(null, attendees);
+                        }
+                    }
+
+
                 });
             }
         }
