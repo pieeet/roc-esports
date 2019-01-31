@@ -114,12 +114,27 @@ router.get('/profile', oauth2.required, (req, res, next) => {
     )
 });
 
-function sanitizeProfileData(data) {
-    data.playername = data.playername.trim();
+function sanitizeProfileFormData(data) {
+    let cleanData = {};
+    cleanData.playername = data.playername.trim();
     if (data.schoolmail) {
-        data.schoolmail = data.schoolmail.trim();
+        cleanData.schoolmail = data.schoolmail.trim();
     }
-    return data;
+    cleanData.opleiding = data.opleiding.trim();
+    if (cleanData.opleiding.length > 25) {
+        cleanData.opleiding = data.opleiding.substr(0, 24) + '...';
+    }
+    cleanData.school = data.school.trim();
+    if (cleanData.school.length > 30) {
+        cleanData.school = data.school.substr(0, 29) + '...';
+    }
+    if (data.imageUrl) {
+        cleanData.imageUrl = data.imageUrl;
+    }
+    if (data.playerid) {
+        cleanData.playerid = data.playerid;
+    }
+    return cleanData;
 }
 
 router.post('/createplayer',
@@ -128,8 +143,7 @@ router.post('/createplayer',
     images.sendUploadToGCS,
     (req, res, next) => {
         let data = req.body;
-        data = sanitizeProfileData(data);
-        console.log(data.playername.length);
+        data = sanitizeProfileFormData(data);
         if (data.playername.length < MIN_NAME || data.playername.length > MAX_NAME) {
             res.render(`profileformconfirm`, {
                 player: data,
@@ -146,13 +160,11 @@ router.post('/createplayer',
         }
 
         // Was an image uploaded? If so, we'll use its public URL
-        // in cloud storage. Old file is deleted from storage.
         if (req.file && req.file.cloudStoragePublicUrl) {
-            const oldImageUrl = data.imageUrl.valueOf();
-            images.deleteImage(oldImageUrl);
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
+            data.imageUrl = req.body.imageUrl;
         }
-        // only store imageUrl, file is stored in GCS
+        // only store imageUrl, file is stored in GCS no need to save in db
         delete data['image'];
         data.email = req.user.email;
 
@@ -212,13 +224,15 @@ router.post('/updateplayer',
     images.sendUploadToGCS,
     (req, res, next) => {
         let data = req.body;
-        data = sanitizeProfileData(data);
+        data = sanitizeProfileFormData(data);
         // Was an image uploaded? If so, we'll use its public URL
         // in cloud storage. Old file is deleted from storage.
         let imgChanged = false;
         if (req.file && req.file.cloudStoragePublicUrl) {
-            const oldImageUrl = data.imageUrl.valueOf();
-            images.deleteImage(oldImageUrl);
+            if (data.imageUrl) {
+                const oldImageUrl = data.imageUrl.valueOf();
+                images.deleteImage(oldImageUrl);
+            }
             req.body.imageUrl = req.file.cloudStoragePublicUrl;
             imgChanged = true;
         }
@@ -266,7 +280,7 @@ router.post('/updateplayer',
                                     message: ''
                                 });
                             });
-                        // email not available
+                            // email not available
                         } else {
                             res.render(`profileformconfirm`, {
                                 player: player,
@@ -283,7 +297,7 @@ router.post('/updateplayer',
                         message: ''
                     });
                 } // [END UPDATE SCHOOLMAIL]
-            // schoolmail is not in form-data meaning player is already verified
+                // schoolmail is not in form-data meaning player is already verified
             } else {
                 // player changed name
                 if (data.playername !== player.playername) {
@@ -307,7 +321,7 @@ router.post('/updateplayer',
                                     }
                                     return res.redirect('/profile');
                                 });
-                            // name not available
+                                // name not available
                             } else {
                                 return res.render(`profileformconfirm`, {
                                     player: player,
@@ -342,7 +356,6 @@ router.get('/:tournament/subscribe',
                 next(err);
                 return;
             }
-
             let tournament = ent;
             let start = new Date(tournament.starttime);
             let end = new Date(tournament.endtime);
@@ -353,8 +366,8 @@ router.get('/:tournament/subscribe',
             tournament.endtime = utils.prettyTime(end);
             tournament.endreg = utils.prettyDate(endreg);
 
+            // is registration still open?
             const inTime = Date.now() < endreg;
-
 
             //get the game associated with the tournament
             getModel().read(KIND_GAME, tournament.game, (err, ent) => {
@@ -362,12 +375,13 @@ router.get('/:tournament/subscribe',
                     next(err);
                     return;
                 }
+                // replace game id with game
                 tournament.game = ent;
                 // get player from request. This is guaranteed because verified.required
                 let player = req.player;
                 // check if user is subscribed
-                let subscriptionId;
                 let actionTournament;
+                // check if player is already subscribed
                 getModel().getSubscription(tournament.id, player.id, (err, ent) => {
                     if (err) {
                         next(err);
@@ -375,18 +389,14 @@ router.get('/:tournament/subscribe',
                     }
                     if (ent === null || !ent.length) {
                         actionTournament = "Subscribe";
-                        subscriptionId = null;
                     } else {
                         actionTournament = "Unsubscribe";
-                        subscriptionId = ent[0].id;
                     }
                     // make a list of subscribers
                     getModel().getAttendees(tournament.id, (err, attendees) => {
                         res.render('subscribeform', {
                             tournament: tournament,
-                            player: player,
                             actiontournament: actionTournament,
-                            subscriptionId: subscriptionId,
                             attendees: attendees,
                             intime: inTime
                         });
@@ -403,29 +413,36 @@ router.post('/:tournament/subscribe',
     verified.required,
     (req, res, next) => {
         const data = req.body;
-        data.player_id = req.player.id; // see verified.required
-        const tournamentId = data.tournament_id;
-        // if subscriptionId player is subscribed. TODO check security!
-        if (data.subscription_id) {
-            const subscriptionId = data.subscription_id;
-            getModel().delete(KIND_PLAYER_TOURNAMENT, subscriptionId, (err, cb) => {
-                if (err) {
-                    next(err);
-                    return;
-                }
-                res.redirect(`/${tournamentId}/subscribe`);
-            });
-        } else {
-            let now = moment.tz(new Date(), 'Europe/Amsterdam');
-            data.timestamp = now.utc().valueOf();
-            getModel().create(KIND_PLAYER_TOURNAMENT, data, (err, cb) => {
-                if (err) {
-                    next(err);
-                    return;
-                }
-                res.redirect(`/${tournamentId}/subscribe`);
-            });
-        }
+        let playerId = req.player.id; // see verified.required
+        data.player_id = playerId;
+        const tournamentId = req.params.tournament;
+        data.tournament_id = tournamentId;
+        getModel().getSubscription(tournamentId, playerId, (err, ent) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            if (ent === null || !ent.length) {
+                let now = moment.tz(new Date(), 'Europe/Amsterdam');
+                data.timestamp = now.utc().valueOf();
+                data.test = 'test';
+                getModel().create(KIND_PLAYER_TOURNAMENT, data, (err, cb) => {
+                    if (err) {
+                        next(err);
+                        return;
+                    }
+                    res.redirect(`/${tournamentId}/subscribe`);
+                });
+            } else {
+                getModel().delete(KIND_PLAYER_TOURNAMENT, ent[0].id, (err, cb) => {
+                    if (err) {
+                        next(err);
+                        return;
+                    }
+                    res.redirect(`/${tournamentId}/subscribe`);
+                });
+            }
+        });
     }
 );
 

@@ -23,13 +23,6 @@ block content
                     code  #{tournament.location}
 
                 form(method='POST')
-                    if subscriptionId
-                        .form-group.hidden
-                            label(for="subscriptionid") Subscription ID
-                            input#subscriptionid.form-control(type="text", name="subscription_id",  value=subscriptionId)
-                    .form-group.hidden
-                        label(for="tournamentid") Tournament ID
-                        input#tournamentid.form-control(type="text", name="tournament_id",  value=tournament.id)
                     if intime
                         .form-group
                             button#subscribe-button.btn.btn-lg.btn-warning(type='submit')
