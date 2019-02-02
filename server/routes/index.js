@@ -1,26 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const oauth2 = require('../lib/oauth2');
+
 // Use the oauth2 middleware to automatically get the user's profile
 // information and expose login/logout URLs to templates.
 router.use(oauth2.template);
+
 // Use the 'verified' middleware to automatically get the player's profile if verified is required
 const verified = require('../lib/verified');
+
+// simple worker functions
 const utils = require('../lib/utils');
 const emailutils = require('../lib/emailutils');
-const bodyParser = require('body-parser');
+
+//middleware to parse form-data with binary file and upload to GCS
 const images = require('../lib/images');
+
+// moment module to handle dates
 const moment = require('moment-timezone');
 
+// Table names in database
 const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
 const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
 
+// Min Max size player name
 const MIN_NAME = 5;
 const MAX_NAME = 13;
 
-// Automatically parse request body as form data
+// module to parse form data
+const bodyParser = require('body-parser');
 router.use(bodyParser.urlencoded({extended: false}));
 
 
@@ -30,6 +40,7 @@ router.use((req, res, next) => {
     next();
 });
 
+// get database middleware
 function getModel() {
     return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
     // return require('../data/model-datastore'); // doet hetzelfde
@@ -85,57 +96,33 @@ router.get('/tournaments', (reg, res, next) => {
 router.get('/profile', oauth2.required, (req, res, next) => {
     // get the player profile associated with the logged in user
     getModel().getPlayer(req.user.email, null, null, (err, ent) => {
-            if (err) {
-                next(err);
-                return;
-            }
-            // the query returns a list with one entity
-            let player = ent[0];
-            if (!player) {
-                player = {};
-            } else {
-                if (player.token === "verified") {
-                    player.verified = true;
-                }
-            }
-            let actionPlayer;
-            // if existing player: set action update
-            // else: set action create
-            if (player.id) {
-                actionPlayer = "Update";
-            } else {
-                actionPlayer = "Create";
-            }
-            res.render('profile', {
-                player: player,
-                action: actionPlayer
-            })
+        if (err) {
+            next(err);
+            return;
         }
-    )
+        // the query returns a list with one entity
+        let player = ent[0];
+        if (!player) {
+            player = {};
+        } else {
+            if (player.token === "verified") {
+                player.verified = true;
+            }
+        }
+        let actionPlayer;
+        // if existing player: set action update
+        // else: set action create
+        if (player.id) {
+            actionPlayer = "Update";
+        } else {
+            actionPlayer = "Create";
+        }
+        res.render('profile', {
+            player: player,
+            action: actionPlayer
+        });
+    });
 });
-
-function sanitizeProfileFormData(data) {
-    let cleanData = {};
-    cleanData.playername = data.playername.trim();
-    if (data.schoolmail) {
-        cleanData.schoolmail = data.schoolmail.trim();
-    }
-    cleanData.opleiding = data.opleiding.trim();
-    if (cleanData.opleiding.length > 25) {
-        cleanData.opleiding = data.opleiding.substr(0, 24) + '...';
-    }
-    cleanData.school = data.school.trim();
-    if (cleanData.school.length > 30) {
-        cleanData.school = data.school.substr(0, 29) + '...';
-    }
-    if (data.imageUrl) {
-        cleanData.imageUrl = data.imageUrl;
-    }
-    if (data.playerid) {
-        cleanData.playerid = data.playerid;
-    }
-    return cleanData;
-}
 
 router.post('/createplayer',
     oauth2.required,
@@ -143,7 +130,7 @@ router.post('/createplayer',
     images.sendUploadToGCS,
     (req, res, next) => {
         let data = req.body;
-        data = sanitizeProfileFormData(data);
+        data = utils.sanitizeProfileFormData(data);
         if (data.playername.length < MIN_NAME || data.playername.length > MAX_NAME) {
             res.render(`profileformconfirm`, {
                 player: data,
@@ -177,6 +164,7 @@ router.post('/createplayer',
                 return;
             }
             if (available) {
+                // check if the playername isn't already in use
                 getModel().playernameAvailable(data.playername, (err, available) => {
                     if (err) {
                         next(err);
@@ -224,7 +212,7 @@ router.post('/updateplayer',
     images.sendUploadToGCS,
     (req, res, next) => {
         let data = req.body;
-        data = sanitizeProfileFormData(data);
+        data = utils.sanitizeProfileFormData(data);
         // Was an image uploaded? If so, we'll use its public URL
         // in cloud storage. Old file is deleted from storage.
         let imgChanged = false;
@@ -238,6 +226,7 @@ router.post('/updateplayer',
         }
         const id = data.playerid.valueOf();
         delete data.playerid;
+        // get player from database to change its relevant properties
         getModel().read(KIND_PLAYER, id, (err, player) => {
             if (err) {
                 next(err);
@@ -289,17 +278,17 @@ router.post('/updateplayer',
                         }
                     });
                 }
-                // nothing changed just resend the verification email
                 else {
                     emailutils.startVerification(player.schoolmail, player.token);
                     return res.render(`profileformconfirm`, {
                         player: player,
                         message: ''
                     });
-                } // [END UPDATE SCHOOLMAIL]
-                // schoolmail is not in form-data meaning player is already verified
-            } else {
-                // player changed name
+                }
+            } // [END UPDATE SCHOOLMAIL]
+            // schoolmail is not in form-data meaning player is already verified
+            else {
+                // player changed name check validity and availability
                 if (data.playername !== player.playername) {
                     // [START NAME CHANGE]
                     //name has changed verify validity
@@ -312,7 +301,7 @@ router.post('/updateplayer',
                         // verify availability
                         getModel().playernameAvailable(data.playername, (err, available) => {
                             if (available) {
-                                //verander naam player
+                                //change playername
                                 player.playername = data.playername;
                                 getModel().update(KIND_PLAYER, id, player, (err, cb) => {
                                     if (err) {

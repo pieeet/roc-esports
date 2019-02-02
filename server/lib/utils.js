@@ -101,6 +101,29 @@ function sendWelcomeEmail(email) {
     sendgrid.send(msg);
 }
 
+function sanitizeProfileFormData(data) {
+    let cleanData = {};
+    cleanData.playername = data.playername.trim();
+    if (data.schoolmail) {
+        cleanData.schoolmail = data.schoolmail.trim();
+    }
+    cleanData.opleiding = data.opleiding.trim();
+    if (cleanData.opleiding.length > 25) {
+        cleanData.opleiding = data.opleiding.substr(0, 24) + '...';
+    }
+    cleanData.school = data.school.trim();
+    if (cleanData.school.length > 30) {
+        cleanData.school = data.school.substr(0, 29) + '...';
+    }
+    if (data.imageUrl) {
+        cleanData.imageUrl = data.imageUrl;
+    }
+    if (data.playerid) {
+        cleanData.playerid = data.playerid;
+    }
+    return cleanData;
+}
+
 
 module.exports = {
     prettyTime,
@@ -108,5 +131,6 @@ module.exports = {
     makeVerificationToken,
     startVerification,
     checkValidSchoolMail,
-    sendWelcomeEmail
+    sendWelcomeEmail,
+    sanitizeProfileFormData
 };
