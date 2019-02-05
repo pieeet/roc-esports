@@ -23,16 +23,18 @@ function prettyTime(date) {
 }
 
 function prettyDate(date) {
-    let out = date.getFullYear() + '-';
+    let mmnt = moment.tz(date.getTime(), 'Europe/Amsterdam');
+
+    let out = mmnt.year() + '-';
     // month = zero based (jan == 0)
-    if (date.getMonth() + 1 < 10) {
-        out += '0' + (date.getMonth() + 1) + '-';
+    if (mmnt.month() + 1 < 10) {
+        out += '0' + (mmnt.month() + 1) + '-';
     } else
         out += date.getMonth() + 1 + '-';
-    if ((date.getDate() < 10)) {
-        out += '0' + date.getDate();
+    if ((mmnt.date() < 10)) {
+        out += '0' + mmnt.date();
     } else
-        out += date.getDate();
+        out += mmnt.date();
     return out;
 }
 
