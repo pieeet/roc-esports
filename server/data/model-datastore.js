@@ -153,7 +153,7 @@ function getPlayer(email, limit, token, cb) {
 function listTournaments(limit, token, startDate, cb) {
     const q = ds.createQuery([KIND_TOURNAMENT])
         .limit(limit)
-        .filter('starttime', '>', startDate)
+        // .filter('starttime', '>', startDate)
         .order('starttime', {
             descending: true,
         })
