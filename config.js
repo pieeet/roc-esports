@@ -24,7 +24,6 @@ nconf
     // 2. Environment variables
     .env([
         'DATA_BACKEND',
-        'GCLOUD_PROJECT',
         'INSTANCE_CONNECTION_NAME',
         'MYSQL_USER',
         'MYSQL_PASSWORD',
@@ -37,7 +36,6 @@ nconf
 
 
 // Check for required settings
-checkConfig('GCLOUD_PROJECT');
 checkConfig('CLOUD_BUCKET');
 checkConfig('OAUTH2_CLIENT_ID');
 checkConfig('OAUTH2_CLIENT_SECRET');
