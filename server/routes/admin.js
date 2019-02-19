@@ -15,6 +15,7 @@ router.use(oauth2.template);
 
 const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
+const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
 
 function getModel() {
     return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
@@ -57,7 +58,6 @@ router.get('/creategame',
             game: {}
         });
     }
-
 );
 
 router.post('/creategame',
@@ -151,7 +151,7 @@ router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, 
 router.get('/tournaments',
     oauth2.required,
     adminauth.required, (req, res, next) => {
-    let admin = req.admin;
+        let admin = req.admin;
         let games = {};
         let tournaments = {};
         getModel().listGames(null, null, (err, gameEntities, cursor) => {
@@ -244,40 +244,37 @@ router.post('/createtournament',
 router.get('/:tournament/updatetournament', oauth2.required, adminauth.required, (req, res, next) => {
     let tournament = {};
     getModel().read(KIND_TOURNAMENT, req.params.tournament, (err, entity) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        tournament = entity;
+        tournament.date = utils.prettyDate(new Date(tournament.starttime));
+        tournament.starttime = utils.prettyTime(new Date(tournament.starttime));
+        tournament.endtime = utils.prettyTime(new Date(tournament.endtime));
+        tournament.endreg = utils.prettyDate(new Date(tournament.endreg));
+
+        getModel().listGames(null, null, (err, gameEntities, cursor) => {
             if (err) {
                 next(err);
                 return;
             }
-            tournament = entity;
-            tournament.date = utils.prettyDate(new Date(tournament.starttime));
-            tournament.starttime = utils.prettyTime(new Date(tournament.starttime));
-            tournament.endtime = utils.prettyTime(new Date(tournament.endtime));
-            tournament.endreg = utils.prettyDate(new Date(tournament.endreg));
-
-
-            getModel().listGames(null, null, (err, gameEntities, cursor) => {
-                if (err) {
-                    next(err);
-                    return;
-                }
-                for (let i = 0; i < gameEntities.length; i++) {
-                    if (gameEntities[i].id === tournament.game) {
-                        tournament.game = gameEntities[i];
-                    }
-
-                    if (i === gameEntities.length - 1) {
-                        console.log(tournament.game);
-                        res.render('admin/tournamentform.pug', {
-                            games: gameEntities,
-                            action: "Update",
-                            tournament: tournament
-                        });
-                    }
+            for (let i = 0; i < gameEntities.length; i++) {
+                if (gameEntities[i].id === tournament.game) {
+                    tournament.game = gameEntities[i];
                 }
 
-            });
-        }
-    );
+                if (i === gameEntities.length - 1) {
+                    console.log(tournament.game);
+                    res.render('admin/tournamentform.pug', {
+                        games: gameEntities,
+                        action: "Update",
+                        tournament: tournament
+                    });
+                }
+            }
+        });
+    });
 });
 
 //update tournament to datastore with post request
@@ -317,6 +314,51 @@ router.get('/:tournament/deletetournament', oauth2.required, adminauth.required,
             return;
         }
         res.redirect('/admin/tournaments');
+    });
+});
+
+
+router.get('/:tournament/checkin', oauth2.required, adminauth.required, (req, res, next) => {
+    const tournamentId = req.params.tournament;
+    getModel().getAttendees(tournamentId, (err, attendees) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        // sort on playername
+        attendees.sort(function (a, b) {
+            return (a.playername.toLowerCase() > b.playername.toLowerCase()) ? 1 :
+                ((b.playername.toLowerCase() > a.playername.toLowerCase()) ? -1 : 0);
+        });
+
+        res.render('admin/checkinlist', {
+            attendees: attendees
+        });
+    });
+});
+
+router.post('/:tournament/checkin', oauth2.required, adminauth.required, (req, res, next) => {
+    const data = req.body;
+    const tournamentId = req.params.tournament;
+    const subscriptionId = data.subscriptionid;
+    getModel().read(KIND_PLAYER_TOURNAMENT, subscriptionId, (err, subscription) => {
+        if (subscription.checkedin) {
+            delete subscription.checkedin;
+        } else {
+            subscription.checkedin = true;
+        }
+        // remove id property to avoid saving id separately
+        delete subscription.id;
+        getModel().update(KIND_PLAYER_TOURNAMENT, subscriptionId, subscription, (err, cb) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            // give datastore some time to process the update
+            setTimeout(() => {
+                res.redirect(`/admin/${tournamentId}/checkin`);
+            }, 300);
+        });
     });
 });
 

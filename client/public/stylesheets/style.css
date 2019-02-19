@@ -9,7 +9,9 @@ label, input, .media, form {
   padding: .5em;
   width: 100%;
 }
-
+.media form {
+  padding: 0;
+}
 .floating-list .media {
   width: 220px;
   float: left;

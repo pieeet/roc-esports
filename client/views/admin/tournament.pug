@@ -45,6 +45,9 @@ block content
                                 i.glyphicon.glyphicon-trash
                             a.btn.btn-lg.btn-warning(href=`/admin/${tournament.id}/updatetournament`)
                                 i.glyphicon.glyphicon-edit
+                        if admin.role >= 2
+                            a.btn.btn-lg.btn-warning(href=`/admin/${tournament.id}/checkin`)
+                                i.glyphicon.glyphicon-user
         else
             h3 No upcoming tournaments.
 

@@ -48,11 +48,13 @@ function getModel() {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
+    console.log(req.session);
     res.render('index', {title: 'roc-dev esports'});
 });
 
 /* GET subscribe page*/
-router.get('/tournaments', (reg, res, next) => {
+router.get('/tournaments', (req, res, next) => {
+    console.log(req.session);
     let tournaments = {};
     getModel().listTournaments(null, null, Date.now(), (err, tournaments, cursor) => {
         if (err) {
@@ -94,6 +96,7 @@ router.get('/tournaments', (reg, res, next) => {
 
 
 router.get('/profile', oauth2.required, (req, res, next) => {
+    console.log(req.session);
     // get the player profile associated with the logged in user
     getModel().getPlayer(req.user.email, null, null, (err, ent) => {
         if (err) {
@@ -383,6 +386,11 @@ router.get('/:tournament/subscribe',
                     }
                     // make a list of subscribers
                     getModel().getAttendees(tournament.id, (err, attendees) => {
+
+                        // sort on subscription timestamp
+                        attendees.sort(function(a,b) {return (a.timestamp > b.timestamp) ? 1 :
+                            ((b.timestamp > a.timestamp) ? -1 : 0);} );
+
                         res.render('subscribeform', {
                             tournament: tournament,
                             actiontournament: actionTournament,

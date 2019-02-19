@@ -231,25 +231,30 @@ function getAttendees(tournamentId, cb) {
         if (!ents.length) {
             cb(null, attendees);
         } else {
+            // resolve during testing accidentally deleted player
             let nEntities = ents.length;
             for (let i = 0; i < ents.length; i++) {
-                read(KIND_PLAYER, ents[i].player_id, (err, player) => {
+                const subscription = fromDatastore(ents[i]);
+                read(KIND_PLAYER, subscription.player_id, (err, player) => {
                     if (err) {
                         //if player cannot be found
                         nEntities--;
                     }
                     if (player) {
-                        player.timestamp = ents[i].timestamp;
+                        // check if player is already checked in for tournament
+                        if (subscription.checkedin) {
+                            player.checkedin = subscription.checkedin;
+                        }
+                        else {
+                            player.checkedin = false;
+                        }
+                        player.subscriptionid = subscription.id;
+                        player.timestamp = subscription.timestamp;
                         attendees.push(player);
                         if (attendees.length === nEntities) {
-                            //sort array based on playername
-                            attendees.sort(function(a,b) {return (a.timestamp > b.timestamp) ? 1 :
-                                ((b.timestamp > a.timestamp) ? -1 : 0);} );
                             cb(null, attendees);
                         }
                     }
-
-
                 });
             }
         }
