@@ -44,7 +44,6 @@ router.get('/', oauth2.required, adminauth.required, (req, res, next) => {
             title: 'roc-dev esports',
             admins: entities
         });
-
     });
 });
 
@@ -127,27 +126,9 @@ router.post('/:game/updategame',
 
     }
 );
-
-// delete game from datastore
-router.get('/:game/deletegame', oauth2.required, adminauth.required, (req, res, next) => {
-    let admin = req.admin;
-    if (admin.role >= 4) {
-        getModel().delete(KIND_GAME, req.params.game, (err) => {
-            if (err) {
-                next(err);
-                return;
-            }
-            res.redirect('/admin/tournaments');
-        });
-    } else {
-        res.redirect('/admin/tournaments');
-    }
-});
-
 // [END GAMES]
 
 // [START TOURNAMENTS]
-
 router.get('/tournaments',
     oauth2.required,
     adminauth.required, (req, res, next) => {
@@ -305,18 +286,6 @@ router.post('/:tournament/updatetournament',
         });
     }
 );
-
-// delete tournament from datastore
-router.get('/:tournament/deletetournament', oauth2.required, adminauth.required, (req, res, next) => {
-    getModel().delete(KIND_TOURNAMENT, req.params.tournament, (err) => {
-        if (err) {
-            next(err);
-            return;
-        }
-        res.redirect('/admin/tournaments');
-    });
-});
-
 
 router.get('/:tournament/checkin', oauth2.required, adminauth.required, (req, res, next) => {
     const tournamentId = req.params.tournament;

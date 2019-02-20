@@ -16,8 +16,6 @@ block content
                     .media-body
                         h4= game.name
                         if admin.role >= 4
-                            a.btn.btn-lg.btn-warning(href=`/admin/${game.id}/deletegame`)
-                                i.glyphicon.glyphicon-trash
                             a.btn.btn-lg.btn-warning(href=`/admin/${game.id}/updategame`)
                                 i.glyphicon.glyphicon-edit
         else
@@ -41,8 +39,6 @@ block content
                         p end time: #{tournament.endtime}
                         p location: #{tournament.location}
                         if admin.role >= 4
-                            a.btn.btn-lg.btn-warning(href=`/admin/${tournament.id}/deletetournament`)
-                                i.glyphicon.glyphicon-trash
                             a.btn.btn-lg.btn-warning(href=`/admin/${tournament.id}/updatetournament`)
                                 i.glyphicon.glyphicon-edit
                         if admin.role >= 2
