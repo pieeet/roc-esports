@@ -440,6 +440,13 @@ router.post('/:tournament/subscribe',
     }
 );
 
+router.get('/teams', oauth2.required, verified.required, (req, res, next) => {
+
+});
+
+
+
+
 router.get('/verifiedconfirm', (req, res, next) => {
     return res.render('verifiedconfirm');
 });
