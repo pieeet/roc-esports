@@ -48,13 +48,11 @@ function getModel() {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    console.log(req.session);
     res.render('index', {title: 'roc-dev esports'});
 });
 
 /* GET subscribe page*/
 router.get('/tournaments', (req, res, next) => {
-    console.log(req.session);
     let tournaments = {};
     getModel().listTournaments(null, null, Date.now(), (err, tournaments, cursor) => {
         if (err) {
@@ -96,7 +94,6 @@ router.get('/tournaments', (req, res, next) => {
 
 
 router.get('/profile', oauth2.required, (req, res, next) => {
-    console.log(req.session);
     // get the player profile associated with the logged in user
     getModel().getPlayer(req.user.email, null, null, (err, ent) => {
         if (err) {
