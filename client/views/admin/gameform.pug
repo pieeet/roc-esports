@@ -21,6 +21,10 @@ block content
                             .col-md-8
                                 input#imageUrl.form-control(type="text", name="imageUrl",  value=game.imageUrl)
                         .form-group
+                            label.col-md-4(for="teamsize") Team size (individual = 1)
+                            .col-md-8
+                                input#teamsize.form-control(type="number", name="teamsize",  value=game.teamsize || '1')
+                        .form-group
                             .col-md-4
                             .col-md-8
                                 button#add-game-button.btnbtn-lg.btn-success(type='submit') #{action} game

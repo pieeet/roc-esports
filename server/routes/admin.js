@@ -66,6 +66,7 @@ router.post('/creategame',
     images.sendUploadToGCS,
     (req, res, next) => {
         const data = req.body;
+        data.teamsize = parseInt(data.teamsize, 10);
         // Was an image uploaded? If so, we'll use its public URL
         // in cloud storage.
         if (req.file && req.file.cloudStoragePublicUrl) {

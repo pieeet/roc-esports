@@ -147,6 +147,26 @@ function getPlayer(email, limit, token, cb) {
     });
 }
 
+function getPlayerFromSchoolmail(email, limit, token, cb) {
+    const q = ds.createQuery([KIND_PLAYER])
+        .limit(limit)
+        .filter('schoolmail', '=', email)
+        .start(token);
+    ds.runQuery(q, (err, player, nextQuery) => {
+        if (!err && !player) {
+            err = {
+                code: 404,
+                message: 'Not found'
+            };
+        }
+        if (err) {
+            cb(err);
+            return;
+        }
+        cb(null, player.map(fromDatastore), false);
+    });
+}
+
 function listTournaments(limit, token, startDate, cb) {
     const q = ds.createQuery([KIND_TOURNAMENT])
         .limit(limit)
@@ -332,6 +352,7 @@ module.exports = {
     listTournaments,
 
     getPlayer,
+    getPlayerFromSchoolmail,
     getSubscription,
     getAttendees,
     verifyEmail,

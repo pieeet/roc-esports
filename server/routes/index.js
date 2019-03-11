@@ -24,6 +24,8 @@ const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
 const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
+const KIND_TEAM = "Team";
+const KIND_TEAM_PLAYER = "Team_Player";
 
 // Min Max size player name
 const MIN_NAME = 5;
@@ -277,8 +279,7 @@ router.post('/updateplayer',
                             });
                         }
                     });
-                }
-                else {
+                } else {
                     emailutils.startVerification(player.schoolmail, player.token);
                     return res.render(`profileformconfirm`, {
                         player: player,
@@ -385,8 +386,10 @@ router.get('/:tournament/subscribe',
                     getModel().getAttendees(tournament.id, (err, attendees) => {
 
                         // sort on subscription timestamp
-                        attendees.sort(function(a,b) {return (a.timestamp > b.timestamp) ? 1 :
-                            ((b.timestamp > a.timestamp) ? -1 : 0);} );
+                        attendees.sort(function (a, b) {
+                            return (a.timestamp > b.timestamp) ? 1 :
+                                ((b.timestamp > a.timestamp) ? -1 : 0);
+                        });
 
                         res.render('subscribeform', {
                             tournament: tournament,
@@ -440,12 +443,114 @@ router.post('/:tournament/subscribe',
     }
 );
 
-router.get('/teams', oauth2.required, verified.required, (req, res, next) => {
-
+router.get('/teamgames', oauth2.required, verified.required, (req, res, next) => {
+    getModel().listGames(null, null, (err, gameEntities, cursor) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        let teamgames = [];
+        for (let i = 0; i < gameEntities.length; i++) {
+            if (gameEntities[i].teamsize > 1) {
+                teamgames.push(gameEntities[i]);
+            }
+        }
+        res.render('teamgames', {
+            games: teamgames
+        });
+    });
 });
 
+router.get('/createteam', oauth2.required, verified.required, (req, res, next) => {
+    const player = req.player;
+    const gameId = req.query.game;
+    getModel().read(KIND_GAME, gameId, (err, game) => {
 
+        res.render('createteamform', {
+            game: game,
+            player: player
+        });
+    });
+});
 
+router.post('/createteam',
+    oauth2.required,
+    verified.required,
+    images.multer.single('image'),
+    images.sendUploadToGCS,
+    (req, res, next) => {
+        const data = req.body;
+        const player = req.player;
+        let teamData = {};
+        teamData.name = data.name;
+        if (req.file && req.file.cloudStoragePublicUrl) {
+            teamData.imageUrl = req.file.cloudStoragePublicUrl;
+        }
+        teamData.leader = player.id;
+        teamData.game_id = data.game_id;
+
+        // get game for teamsize
+        getModel().read(KIND_GAME, teamData.game_id, (err, game) => {
+            if (err) {
+                next(err);
+                return
+            }
+            const teamSize = game.teamsize;
+            console.log("Team size: " + teamSize);
+            // check members
+            let members = [];
+            for (let i = 0; i < teamSize; i++) {
+                if ('member_' + i in data) {
+                    const schoolmail = data['member_' + i];
+                    getModel().getPlayerFromSchoolmail(schoolmail, null, null, (err, players) => {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
+                        const player = players[0];
+                        if (player) {
+                            if (player.token === 'verified') {
+                                let member = {};
+                                member.player_id = player.id;
+                                members.push(member);
+                                console.log("members length = " + members.length); // success
+                                console.log("teamsize = " + teamSize); // success
+                                // number of members equals teamsize: we have a go! Create team and team_player
+                                if (members.length === teamSize) {
+                                    console.log("members length == teamsize");
+                                    getModel().create(KIND_TEAM, teamData, (err, team) => {
+                                        if (err) {
+                                            next(err);
+                                            return;
+                                        }
+                                        for (let i = 0; i < members.length; i++) {
+                                            let tp = members[i];
+                                            tp.team_id = team.id;
+                                            getModel().create(KIND_TEAM_PLAYER, tp, (err, cb) => {
+                                                if (err) {
+                                                    next(err);
+                                                    return;
+                                                }
+                                                if (i === members.length - 1) {
+                                                    return res.redirect('/teamgames');
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            } else {
+                                // TODO create error message player not verified
+                            }
+                        } else {
+                            //TODO create error message player not existant
+                        }
+
+                    });
+                }
+            }
+        });
+    }
+);
 
 router.get('/verifiedconfirm', (req, res, next) => {
     return res.render('verifiedconfirm');

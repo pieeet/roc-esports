@@ -1,0 +1,34 @@
+extends layout.pug
+
+block content
+    .container.content
+        .col-md-8
+            .col-md-12
+                .well.bs-component
+                    form.form-horizontal(method='POST' action='/createteam' enctype="multipart/form-data")
+                        fieldset
+                            legend Create Team for #{game.name}
+                            .form-group
+                                label.col-md-4(for='team-name') Team Name:
+                                .col-md-8
+                                    input#team-name(type='text', name='name' required)
+                            .form-group
+                                label.col-md-4(for="game-image") Team Logo
+                                .col-md-8
+                                    input#game-image.form-control(type="file", name="image")
+                            .form-group.hidden
+                                input.form-control(type='text', name='game_id' value=game.id)
+                            - var n = 0;
+                            while n < game.teamsize
+                                .form-group
+                                    label.col-md-4 member #{n+1} schoolmail
+                                    if n === 0
+                                        .col-md-8
+                                            input.form-control(name=`member_${n++}` value=`${player.schoolmail}` required)
+                                    else
+                                        .col-md-8
+                                            input.form-control(name=`member_${n++}` required)
+                            .form-group
+                                .col-md-4
+                                .col-md-8
+                                    button#create-team.btn.btn-success(type="submit") Create team
