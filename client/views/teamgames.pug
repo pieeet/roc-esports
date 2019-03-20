@@ -7,14 +7,22 @@ block content
                 .well.bs-component
                     form.form-horizontal(method='GET' action='/createteam')
                         fieldset
-                            legend Create Team
+                            legend Teams
                             .form-group
-                                label.col-md-4(for='game') Game:
+                                label.col-md-4(for='game') Team Games:
                                 .col-md-8
                                     select#game(name='game' required)
+                                        option(value='') Choose game...
                                         each gm in games
                                             option(value=gm.id) #{gm.name}
                             .form-group
                                 .col-md-4
                                 .col-md-8
                                     button#choose-game.btn.btn-success(type="submit") choose game
+
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                $('#teams').addClass('active');
+            }
+        );

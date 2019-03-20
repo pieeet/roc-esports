@@ -42,6 +42,65 @@ img.avatar {
   margin-top: 70px;
 }
 
+/************** Callouts *************************/
+
+.bs-callout {
+  border: 1px solid #eee;
+  border-left-width: 5px;
+  border-radius: 3px;
+  margin: 20px 0;
+  padding: 20px;
+}
+
+.bs-callout code {
+  border-radius: 3px;
+}
+
+.bs-callout + .bs-callout {
+  margin-top: -5px;
+}
+
+.bs-callout-danger {
+  border-left-color: #d9534f;
+}
+
+.bs-callout-danger h4 {
+  color: #d9534f;
+}
+
+.bs-callout-danger h4.danger {
+  color: #d9534f;
+}
+
+.bs-callout-warning {
+  border-left-color: #f0ad4e;
+}
+
+.bs-callout-warning h4 {
+  color: #f0ad4e;
+}
+
+.bs-callout-info {
+  border-left-color: #5bc0de;
+}
+
+.bs-callout-info h4 {
+  color: #5bc0de;
+}
+
+.bs-callout-succes {
+  border-left-color: #688B37;
+}
+
+.bs-callout-succes h4 {
+  color: #688B37;
+}
+
+.bs-callout-succes h4.succes {
+  color: #688B37;
+}
+
+
 /* [START profileformconfirm] */
 figure img {
   width: 100%;

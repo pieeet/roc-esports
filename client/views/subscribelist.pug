@@ -8,10 +8,10 @@ block content
             each tournament in tournaments
                 .media
                     .media-left
-                        img(src=tournament.gameImg ||
+                        img(src=tournament.game.imageUrl ||
                         "/img/male-profile-pic-placeholder.png")
                     .media-body
-                        h4= tournament.gamename
+                        h4= tournament.game.name
                         p date: #{tournament.date}
                         p start time: #{tournament.starttime}
                         p end time: #{tournament.endtime}

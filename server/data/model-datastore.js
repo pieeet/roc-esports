@@ -9,6 +9,8 @@ const KIND_GAME = "Game";
 const KIND_TOURNAMENT = "Tournament";
 const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
+const KIND_TEAM = "Team";
+const KIND_TEAM_PLAYER = "Team_Player";
 
 // [END config]
 
@@ -167,13 +169,11 @@ function getPlayerFromSchoolmail(email, limit, token, cb) {
     });
 }
 
+// get tournaments with startdate. To list all tournaments you can use 0 as startDate
 function listTournaments(limit, token, startDate, cb) {
     const q = ds.createQuery([KIND_TOURNAMENT])
         .limit(limit)
-        // .filter('starttime', '>', startDate)
-        .order('starttime', {
-            descending: true,
-        })
+        .filter('starttime', '>', startDate)
         .start(token);
 
     ds.runQuery(q, (err, entities, nextQuery) => {
@@ -200,7 +200,7 @@ function isAdmin(email, minrole, cb) {
         }
         let admin = null;
         if (players[0].role >= minrole) {
-           admin = players[0];
+            admin = players[0];
         }
         cb(null, admin);
     });
@@ -237,7 +237,7 @@ function getSubscription(tournament, player, cb) {
 }
 
 
-function getAttendees(tournamentId, cb) {
+function getAttendees(tournamentId, isTeamGame, cb) {
     let attendees = [];
     const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
         .filter('tournament_id', '=', tournamentId);
@@ -253,24 +253,26 @@ function getAttendees(tournamentId, cb) {
         } else {
             // resolve during testing accidentally deleted player
             let nEntities = ents.length;
+            // attendee can be player or team
+            let table = KIND_PLAYER;
+            if (isTeamGame) table = KIND_TEAM;
             for (let i = 0; i < ents.length; i++) {
                 const subscription = fromDatastore(ents[i]);
-                read(KIND_PLAYER, subscription.player_id, (err, player) => {
+                read(table, subscription.player_id, (err, attendee) => {
                     if (err) {
                         //if player cannot be found
                         nEntities--;
                     }
-                    if (player) {
+                    if (attendee) {
                         // check if player is already checked in for tournament
                         if (subscription.checkedin) {
-                            player.checkedin = subscription.checkedin;
+                            attendee.checkedin = subscription.checkedin;
+                        } else {
+                            attendee.checkedin = false;
                         }
-                        else {
-                            player.checkedin = false;
-                        }
-                        player.subscriptionid = subscription.id;
-                        player.timestamp = subscription.timestamp;
-                        attendees.push(player);
+                        attendee.subscriptionid = subscription.id;
+                        attendee.timestamp = subscription.timestamp;
+                        attendees.push(attendee);
                         if (attendees.length === nEntities) {
                             cb(null, attendees);
                         }
@@ -296,7 +298,7 @@ function verifyEmail(email, token, cb) {
         delete player.id;
         // avoid server error if users clicks email again after being verified
         if (player.token === token || player.token === "verified")
-        player['token'] = "verified";
+            player['token'] = "verified";
         update(KIND_PLAYER, id, player, (err, res) => {
             if (err) {
                 cb(err);
@@ -338,6 +340,67 @@ function playernameAvailable(playername, cb) {
     });
 }
 
+function teamNameAvailableForGame(teamname, gameId, cb) {
+    const q = ds.createQuery([KIND_TEAM])
+        .filter('game_id', '=', gameId);
+    ds.runQuery(q, (err, teams) => {
+        if (teams.length === 0) return cb(null, true);
+        for (let i = 0; i < teams.length; i++) {
+            if (teams[i].playername.toLowerCase() === teamname.toLowerCase()) {
+                return cb(null, false);
+            }
+            if (i === teams.length - 1) {
+                return cb(null, true);
+            }
+        }
+    });
+}
+
+
+function getTeamFromPlayerForGame(playerid, gameId, cb) {
+    const q = ds.createQuery([KIND_TEAM_PLAYER]).filter('player_id', '=', playerid);
+    ds.runQuery(q, (err, ents) => {
+        if (ents.length === 0) {
+            return cb(null, null);
+        } else {
+            let count = 0;
+            for (let i = 0; i < ents.length; i++) {
+                const ent = ents[i];
+                const teamId = ent.team_id;
+                read(KIND_TEAM, teamId, (err, team) => {
+                    if (team.game_id === gameId) {
+                        return cb(null, team);
+                    } else {
+                        count++;
+                    }
+                    if (count === ents.length) {
+                        return cb(null, null);
+                    }
+                });
+            }
+        }
+    });
+}
+
+function listTeamMembers(teamid, cb) {
+    const q = ds.createQuery(KIND_TEAM_PLAYER).filter('team_id', '=', teamid);
+    ds.runQuery(q, (err, ents) => {
+        let teamMembers = [];
+        for (let i = 0; i < ents.length; i++) {
+            const tp = fromDatastore(ents[i]);
+            const playerId = tp.player_id;
+            read(KIND_PLAYER, playerId, (err, player) => {
+                player.tpId = tp.id;
+                teamMembers.push(player);
+                if (teamMembers.length === ents.length) {
+                    cb(null, teamMembers);
+                }
+            });
+
+        }
+    });
+}
+
 
 // [START exports]
 module.exports = {
@@ -350,6 +413,7 @@ module.exports = {
     listPlayers,
     listGames,
     listTournaments,
+    listTeamMembers,
 
     getPlayer,
     getPlayerFromSchoolmail,
@@ -358,6 +422,9 @@ module.exports = {
     verifyEmail,
     isAdmin,
     schoolmailAvailable,
-    playernameAvailable
+    playernameAvailable,
+    getTeamFromPlayerForGame,
+    teamNameAvailableForGame
+
 };
 // [END exports]

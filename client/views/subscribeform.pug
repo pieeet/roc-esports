@@ -17,19 +17,26 @@ block content
                     code  #{tournament.endtime}
                 p registration ends: &nbsp;
                     code  #{tournament.endreg} 00:00
-                p max players: &nbsp;
+                p max #{units}: &nbsp;
                     code  #{tournament.maxplayers}
                 p location: &nbsp;
                     code  #{tournament.location}
+                p teamsize: &nbsp;
+                    code  #{tournament.game.teamsize}
 
                 form(method='POST')
                     if !intime && actiontournament === 'Subscribe'
-                        p Sorry registration is closed
-                    else
+                        p Registration is closed
+                    else if actiontournament === 'Subscribe' || actiontournament === 'Unsubscribe'
+                        if team
+                            .form-group.hidden
+                                input(type='text' name='team_id' value=team.id)
                         .form-group
                             button#subscribe-button.btn.btn-lg.btn-warning(type='submit')
                                 i.glyphicon.glyphicon-send
                                 span &nbsp;#{actiontournament}
+                    else if actiontournament === 'Subscriptions'
+                        p Only leaders of teams for #{tournament.game.name} can subscribe to this tournament
 
         h2 Subscribed
         if attendees.length

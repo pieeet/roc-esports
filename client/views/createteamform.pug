@@ -2,33 +2,116 @@ extends layout.pug
 
 block content
     .container.content
-        .col-md-8
-            .col-md-12
-                .well.bs-component
-                    form.form-horizontal(method='POST' action='/createteam' enctype="multipart/form-data")
-                        fieldset
-                            legend Create Team for #{game.name}
-                            .form-group
-                                label.col-md-4(for='team-name') Team Name:
-                                .col-md-8
-                                    input#team-name(type='text', name='name' required)
-                            .form-group
-                                label.col-md-4(for="game-image") Team Logo
-                                .col-md-8
-                                    input#game-image.form-control(type="file", name="image")
-                            .form-group.hidden
-                                input.form-control(type='text', name='game_id' value=game.id)
-                            - var n = 0;
-                            while n < game.teamsize
+        if message && message.length
+            h2 An error occured
+            p= message
+        //user has a team for this game
+        if team
+            .row
+                .col-md-8
+                    h1 Your team for #{game.name}
+                    .media
+                        .media-left
+                            img(src=team.imageUrl ||
+                            "/img/male-profile-pic-placeholder.png")
+                        .media-body
+                            h4= team.playername
+                            p Team leader: #{team.leader.playername}
+            // user is teamleader, can update team
+            if isleader
+                .row
+                    .col-md-8
+                        .col-md-12
+                            .well.bs-component
+                                form.form-horizontal(method='POST' action=`/${team.id}/updateteam` enctype="multipart/form-data")
+                                    fieldset
+                                        legend Update Team for #{game.name}
+                                        .form-group
+                                            label.col-md-4(for='team-name') Team Name:
+                                            .col-md-8
+                                                input#team-name(type='text', name='name' value=team.playername required)
+                                                span.help-block max 13 characters
+                                        .form-group
+                                            label.col-md-4(for="team-logo") Team Logo
+                                            .col-md-8
+                                                input#team-logo.form-control(type="file", name="image")
+                                        .form-group.hidden
+                                            input.form-control(type='text', name='team_logo' value=team.imageUrl)
+                                        .form-group
+                                            .col-md-4
+                                            .col-md-8
+                                                button#update-team.btn.btn-warning(type="submit") Update team
+
+                            each member in members
+                                if member.email !== profile.email
+                                    .well.bs-component
+                                        form.form-horizontal(method='POST' action=`/${member.tpId}/replaceteammember`)
+                                            fieldset
+                                                legend Replace member for #{member.playername}
+                                                .form-group
+                                                    label.col-md-4 schoolmail
+                                                    .col-md-8
+                                                        input(value=member.schoolmail name='schoolmail' required)
+                                                .form-group.hidden
+                                                    input(value=game.id name='game_id')
+                                                .form-group.hidden
+                                                    input(value=team.id name='team_id')
+                                                .form-group
+                                                    .col-md-4
+                                                    .col-md-8
+                                                        button.btn.btn-warning(type="submit") Replace member
+
+        else
+            .col-md-8
+                .col-md-12
+                    .bs-callout.bs-callout-danger
+                        h4 Creating teams
+                        p.
+                            To create a team for #[code #{game.name}] you need the #[strong verified school] email
+                            addresses of #[code #{game.teamsize - 1}] #[strong registered] players beside yourself.
+                            A player can only be a member of one team per game. If you create a
+                            team you will automatically be the team leader. Team leaders can change the team name,
+                            logo and can replace team members. Only team leaders can subscribe their team to team
+                            tournaments. If you don't want to be team leader, ask another member to create
+                            the team.
+                    .well.bs-component
+                        form.form-horizontal(method='POST' enctype="multipart/form-data")
+                            fieldset
+                                legend Create Team for #{game.name}
                                 .form-group
-                                    label.col-md-4 member #{n+1} schoolmail
-                                    if n === 0
-                                        .col-md-8
-                                            input.form-control(name=`member_${n++}` value=`${player.schoolmail}` required)
-                                    else
-                                        .col-md-8
-                                            input.form-control(name=`member_${n++}` required)
-                            .form-group
-                                .col-md-4
-                                .col-md-8
-                                    button#create-team.btn.btn-success(type="submit") Create team
+                                    label.col-md-4(for='team-name') Team Name:
+                                    .col-md-8
+                                        input.form-control#team-name(type='text', name='name' required)
+                                        span.help-block max 13 characters
+                                .form-group
+                                    label.col-md-4(for="team-logo") Team Logo
+                                    .col-md-8
+                                        input.form-control-file#team-logo.form-control(type="file", name="image")
+                                .form-group
+                                    label.col-md-4(for="school") School:
+                                    .col-md-8
+                                        select.form-control#school.form-control(name='school' required)
+                                            option(value='') Choose...
+                                            option(value='ROC-Flevoland' selected) ROC-Flevoland
+                                - var n = 0;
+                                while n < game.teamsize
+                                    .form-group
+                                        if n === 0
+                                            label.col-md-4 team leader schoolmail
+                                            .col-md-8
+                                                input.form-control(name=`member_${n++}` value=`${player.schoolmail}` required readonly)
+                                        else
+                                            label.col-md-4 member #{n+1} schoolmail
+                                            .col-md-8
+                                                input.form-control(name=`member_${n++}` required)
+                                .form-group
+                                    .col-md-4
+                                    .col-md-8
+                                        button#create-team.btn.btn-success(type="submit") Create team
+
+    script(type='text/javascript').
+        $(document).ready(
+            function () {
+                $('#teams').addClass('active');
+            }
+        );

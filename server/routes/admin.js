@@ -106,6 +106,7 @@ router.post('/:game/updategame',
         let admin = req.admin;
         if (admin.role >= 4) {
             const data = req.body;
+            data.teamsize = parseInt(data.teamsize, 10);
             const id = req.params.game;
             // Was an image uploaded? If so, we'll use its public URL
             // in cloud storage.
@@ -288,23 +289,30 @@ router.post('/:tournament/updatetournament',
     }
 );
 
+// check in players or teams for tournament
 router.get('/:tournament/checkin', oauth2.required, adminauth.required, (req, res, next) => {
     const tournamentId = req.params.tournament;
-    getModel().getAttendees(tournamentId, (err, attendees) => {
-        if (err) {
-            next(err);
-            return;
-        }
-        // sort on playername
-        attendees.sort(function (a, b) {
-            return (a.playername.toLowerCase() > b.playername.toLowerCase()) ? 1 :
-                ((b.playername.toLowerCase() > a.playername.toLowerCase()) ? -1 : 0);
-        });
+    getModel().read(KIND_TOURNAMENT, tournamentId, (err, tournament) => {
+        getModel().read(KIND_GAME, tournament.game, (err, game) => {
+            const isTeamGame = game.teamsize > 1;
+            getModel().getAttendees(tournamentId, isTeamGame, (err, attendees) => {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                // sort on playername
+                attendees.sort(function (a, b) {
+                    return (a.playername.toLowerCase() > b.playername.toLowerCase()) ? 1 :
+                        ((b.playername.toLowerCase() > a.playername.toLowerCase()) ? -1 : 0);
+                });
 
-        res.render('admin/checkinlist', {
-            attendees: attendees
+                res.render('admin/checkinlist', {
+                    attendees: attendees
+                });
+            });
         });
     });
+
 });
 
 router.post('/:tournament/checkin', oauth2.required, adminauth.required, (req, res, next) => {

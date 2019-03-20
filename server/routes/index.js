@@ -55,8 +55,7 @@ router.get('/', function (req, res, next) {
 
 /* GET subscribe page*/
 router.get('/tournaments', (req, res, next) => {
-    let tournaments = {};
-    getModel().listTournaments(null, null, Date.now(), (err, tournaments, cursor) => {
+    getModel().listTournaments(null, null, 0, (err, tournaments, cursor) => {
         if (err) {
             next(err);
             return;
@@ -66,26 +65,34 @@ router.get('/tournaments', (req, res, next) => {
                 tournaments: tournaments
             });
         } else {
+            let tournamentslist = [];
             for (let i = 0; i < tournaments.length; i++) {
                 let tournament = tournaments[i];
                 tournament.date = utils.prettyDate(new Date(tournament.starttime));
                 tournament.starttime = utils.prettyTime(new Date(tournament.starttime));
                 tournament.endtime = utils.prettyTime(new Date(tournament.endtime));
 
-
-                // replace tournament.game (id only) with full game entity so we have game data
-                let gameId = tournament.game;
-
-                getModel().read(KIND_GAME, gameId, (err, entity) => {
+                // replace tournament.game (id) with full game entity so we have game data
+                getModel().read(KIND_GAME, tournament.game, (err, game) => {
                     if (err) {
                         next(err);
                         return;
                     }
-                    tournament.gamename = entity.name;
-                    tournament.gameImg = entity.imageUrl;
-                    if (i === tournaments.length - 1) {
+                    tournament.game = game;
+                    tournamentslist.push(tournament);
+
+                    //
+
+
+
+                    // datastore sort function not always working (due to async?)
+                    if (tournamentslist.length === tournaments.length) {
+                        tournamentslist.sort(function (a, b) {
+                            return (a.starttime > b.starttime) ? -1 :
+                                ((b.starttime > a.starttime) ? 1 : 0);
+                        });
                         res.render('subscribelist.pug', {
-                            tournaments: tournaments
+                            tournaments: tournamentslist
                         });
                     }
                 });
@@ -369,37 +376,75 @@ router.get('/:tournament/subscribe',
                 tournament.game = ent;
                 // get player from request. This is guaranteed because verified.required
                 let player = req.player;
-                // check if user is subscribed
-                let actionTournament;
-                // check if player is already subscribed
-                getModel().getSubscription(tournament.id, player.id, (err, ent) => {
-                    if (err) {
-                        next(err);
-                        return;
-                    }
-                    if (ent === null || !ent.length) {
-                        actionTournament = "Subscribe";
-                    } else {
-                        actionTournament = "Unsubscribe";
-                    }
-                    // make a list of subscribers
-                    getModel().getAttendees(tournament.id, (err, attendees) => {
-
-                        // sort on subscription timestamp
-                        attendees.sort(function (a, b) {
-                            return (a.timestamp > b.timestamp) ? 1 :
-                                ((b.timestamp > a.timestamp) ? -1 : 0);
-                        });
-
-                        res.render('subscribeform', {
-                            tournament: tournament,
-                            actiontournament: actionTournament,
-                            attendees: attendees,
-                            intime: inTime
-                        });
+                // check if tournament is team play
+                let isTeamgame = tournament.game.teamsize > 1;
+                let units = 'players';
+                if (isTeamgame) units = 'teams';
+                console.log(units);
+                // make a list of subscribers
+                getModel().getAttendees(tournament.id, isTeamgame, (err, attendees) => {
+                    // sort on subscription timestamp
+                    attendees.sort(function (a, b) {
+                        return (a.timestamp > b.timestamp) ? 1 :
+                            ((b.timestamp > a.timestamp) ? -1 : 0);
                     });
-                });
+                    let actionTournament;
 
+                    // teamgame
+                    if (isTeamgame) {
+                        getModel().getTeamFromPlayerForGame(player.id, tournament.game.id, (err, team) => {
+                            // user is teamleader
+                            if (team && player.id === team.leader) {
+                                getModel().getSubscription(tournament.id, team.id, (err, ent) => {
+                                    if (ent === null || !ent.length) {
+                                        actionTournament = "Subscribe";
+                                    } else {
+                                        actionTournament = "Unsubscribe";
+                                    }
+                                    return res.render('subscribeform', {
+                                        units: units,
+                                        team: team,
+                                        tournament: tournament,
+                                        actiontournament: actionTournament,
+                                        attendees: attendees,
+                                        intime: inTime
+                                    });
+                                });
+                                // has no team or is not teamleader
+                            } else {
+                                actionTournament = 'Subscriptions';
+                                return res.render('subscribeform', {
+                                    units: units,
+                                    tournament: tournament,
+                                    actiontournament: actionTournament,
+                                    attendees: attendees,
+                                    intime: inTime
+                                });
+                            }
+                        });
+                    }
+                    // individual game
+                    else {
+                        getModel().getSubscription(tournament.id, player.id, (err, ent) => {
+                            if (err) {
+                                next(err);
+                                return;
+                            }
+                            if (ent === null || !ent.length) {
+                                actionTournament = "Subscribe";
+                            } else {
+                                actionTournament = "Unsubscribe";
+                            }
+                            return res.render('subscribeform', {
+                                units: units,
+                                tournament: tournament,
+                                actiontournament: actionTournament,
+                                attendees: attendees,
+                                intime: inTime
+                            });
+                        });
+                    }
+                });
             });
         });
     }
@@ -410,11 +455,14 @@ router.post('/:tournament/subscribe',
     verified.required,
     (req, res, next) => {
         const data = req.body;
-        let playerId = req.player.id; // see verified.required
-        data.player_id = playerId;
+         // see verified.required
+        data.player_id = req.player.id;
+        // if team game replace player_id with team_id
+        if (data.team_id) data.player_id = data.team_id.valueOf();
+        delete data.team_id;
         const tournamentId = req.params.tournament;
         data.tournament_id = tournamentId;
-        getModel().getSubscription(tournamentId, playerId, (err, ent) => {
+        getModel().getSubscription(tournamentId, data.player_id, (err, ent) => {
             if (err) {
                 next(err);
                 return;
@@ -422,7 +470,6 @@ router.post('/:tournament/subscribe',
             if (ent === null || !ent.length) {
                 let now = moment.tz(new Date(), 'Europe/Amsterdam');
                 data.timestamp = now.utc().valueOf();
-                data.test = 'test';
                 getModel().create(KIND_PLAYER_TOURNAMENT, data, (err, cb) => {
                     if (err) {
                         next(err);
@@ -461,19 +508,44 @@ router.get('/teamgames', oauth2.required, verified.required, (req, res, next) =>
     });
 });
 
-router.get('/createteam', oauth2.required, verified.required, (req, res, next) => {
-    const player = req.player;
-    const gameId = req.query.game;
-    getModel().read(KIND_GAME, gameId, (err, game) => {
+router.get('/createteam', (req, res, next) => {
+    res.redirect(`/${req.query.game}/createteam`);
+});
 
-        res.render('createteamform', {
-            game: game,
-            player: player
+router.get('/:game/createteam', oauth2.required, verified.required, (req, res, next) => {
+    const player = req.player;
+    const gameId = req.params.game;
+    getModel().read(KIND_GAME, gameId, (err, game) => {
+        getModel().getTeamFromPlayerForGame(player.id, game.id, (err, team) => {
+            // player has a team
+            if (team) {
+                const teamleaderId = team.leader.valueOf();
+                getModel().read(KIND_PLAYER, teamleaderId, (err, leader) => {
+                    // replace id teamleader with player so we can expose its name
+                    team.leader = leader;
+                    // check if player is teamleader
+                    let isLeader = leader.id === player.id;
+                    getModel().listTeamMembers(team.id, (err, teamMembers) => {
+                        res.render('createteamform', {
+                            members: teamMembers,
+                            team: team,
+                            game: game,
+                            player: player,
+                            isleader: isLeader
+                        });
+                    });
+                })
+            } else {
+                res.render('createteamform', {
+                    game: game,
+                    player: player
+                });
+            }
         });
     });
 });
 
-router.post('/createteam',
+router.post('/:game/createteam',
     oauth2.required,
     verified.required,
     images.multer.single('image'),
@@ -481,48 +553,62 @@ router.post('/createteam',
     (req, res, next) => {
         const data = req.body;
         const player = req.player;
-        let teamData = {};
-        teamData.name = data.name;
-        if (req.file && req.file.cloudStoragePublicUrl) {
-            teamData.imageUrl = req.file.cloudStoragePublicUrl;
-        }
-        teamData.leader = player.id;
-        teamData.game_id = data.game_id;
 
-        // get game for teamsize
-        getModel().read(KIND_GAME, teamData.game_id, (err, game) => {
+        // get the game
+        getModel().read(KIND_GAME, req.params.game, (err, game) => {
             if (err) {
                 next(err);
                 return
             }
-            const teamSize = game.teamsize;
-            console.log("Team size: " + teamSize);
-            // check members
-            let members = [];
-            for (let i = 0; i < teamSize; i++) {
-                if ('member_' + i in data) {
-                    const schoolmail = data['member_' + i];
-                    getModel().getPlayerFromSchoolmail(schoolmail, null, null, (err, players) => {
-                        if (err) {
-                            next(err);
-                            return;
-                        }
-                        const player = players[0];
-                        if (player) {
-                            if (player.token === 'verified') {
+
+            //sanitize teamname
+            data.name = data.name.trim();
+            if (data.name.length > MAX_NAME)
+                data.name = data.name.substring(0, MAX_NAME) + '...';
+            // check if team name = available
+            getModel().teamNameAvailableForGame(data.name, req.params.game, (err, isAvailable) => {
+                if (isAvailable) {
+                    const teamSize = game.teamsize;
+                    console.log(teamSize);
+                    // check members
+                    let members = [];
+                    for (let i = 0; i < teamSize; i++) {
+                        const schoolmail = data['member_' + i];
+                        getPlayerForTeam(schoolmail, game, (err, teamplayer, errMsg) => {
+                            if (!teamplayer) {
+                                return res.render('createteamform', {
+                                    message: errMsg,
+                                    game: game,
+                                    player: player
+                                });
+                            } else {
                                 let member = {};
-                                member.player_id = player.id;
+                                member.player_id = teamplayer.id;
                                 members.push(member);
-                                console.log("members length = " + members.length); // success
-                                console.log("teamsize = " + teamSize); // success
-                                // number of members equals teamsize: we have a go! Create team and team_player
+
+                                // number of members equals teamsize: we have a go! Create team and team_players
                                 if (members.length === teamSize) {
-                                    console.log("members length == teamsize");
+                                    console.log("members completed");
+                                    let teamData = {};
+                                    //team must have same name/opleiding/img attrs as player so it's same
+                                    // on attendees list page
+                                    teamData.playername = data.name;
+                                    // for a team opleiding === school.
+                                    teamData.opleiding = data.school;
+                                    teamData.school = data.school;
+                                    if (req.file && req.file.cloudStoragePublicUrl) {
+                                        teamData.imageUrl = req.file.cloudStoragePublicUrl;
+                                    }
+                                    // player that creates team is the teamleader
+                                    teamData.leader = player.id;
+                                    teamData.game_id = req.params.game;
+                                    // save team
                                     getModel().create(KIND_TEAM, teamData, (err, team) => {
                                         if (err) {
                                             next(err);
                                             return;
                                         }
+                                        // save team members
                                         for (let i = 0; i < members.length; i++) {
                                             let tp = members[i];
                                             tp.team_id = team.id;
@@ -531,6 +617,7 @@ router.post('/createteam',
                                                     next(err);
                                                     return;
                                                 }
+                                                // all members are saved
                                                 if (i === members.length - 1) {
                                                     return res.redirect('/teamgames');
                                                 }
@@ -538,19 +625,142 @@ router.post('/createteam',
                                         }
                                     });
                                 }
-                            } else {
-                                // TODO create error message player not verified
                             }
-                        } else {
-                            //TODO create error message player not existant
-                        }
-
+                        });
+                    }
+                } else {
+                    res.render('createteamform', {
+                        message: `The team name ${data.name} is already in use. 
+                                                    Please choose another name`,
+                        game: game,
+                        player: player
                     });
                 }
-            }
+            });
         });
     }
 );
+
+router.post('/:team/updateteam',
+    oauth2.required,
+    verified.required,
+    images.multer.single('image'),
+    images.sendUploadToGCS,
+    (req, res, next) => {
+        const data = req.body;
+        const teamId = req.params.team;
+        let imageChanged = false;
+        getModel().read(KIND_TEAM, teamId, (err, team) => {
+            getModel().read(KIND_PLAYER, team.leader, (err, leader) => {
+                if (req.file && req.file.cloudStoragePublicUrl) {
+                    team.imageUrl = req.file.cloudStoragePublicUrl;
+                    imageChanged = true;
+                }
+                // user changed team name
+                if (data.name !== team.playername) {
+                    if (data.name.length > MAX_NAME)
+                        data.name = data.name.substring(0, MAX_NAME - 1) + '...';
+                    // check if teamname is available
+                    getModel().teamNameAvailableForGame(data.name, team.game_id, (err, isAvailable) => {
+                        if (isAvailable) {
+                            team.playername = data.name;
+                            delete team.id;
+                            if (imageChanged) images.deleteImage(data.team_logo);
+                            getModel().update(KIND_TEAM, teamId, team, (err, cb) => {
+                                return res.redirect('/teamgames');
+                            });
+                        } else {
+                            getModel().read(KIND_GAME, team.game_id, (err, game) => {
+                                // change leader-id with leader object
+                                team.leader = leader;
+                                res.render('createteamform', {
+                                    message: `The team name ${data.name} is already in use. 
+                                                    Please choose another name`,
+                                    game: game,
+                                    team: team,
+                                    player: player
+                                });
+                            });
+                        }
+                    });
+                } else {
+                    if (imageChanged) images.deleteImage(data.team_logo);
+                    getModel().update(KIND_TEAM, teamId, team, (err, cb) => {
+                        return res.redirect('/teamgames');
+                    });
+                }
+            });
+        });
+    }
+);
+
+router.post('/:teamplayerid/replaceteammember',
+    oauth2.required,
+    verified.required, (req, res, next) => {
+        const data = req.body;
+        const schoolmail = data.schoolmail;
+        const gameId = data.game_id;
+        const teamId = data.team_id;
+        // only a teamleader can access this route
+        const leader = req.player;
+        getModel().read(KIND_GAME, gameId, (err, game) => {
+            // get team from leader to pass in case of error
+            getPlayerForTeam(schoolmail, game, (err, teamMember, errMsg) => {
+                // team member not valid. Render createteamform with appropriate error message
+                if (!teamMember) {
+                    //to render page we need a team...
+                    getModel().getTeamFromPlayerForGame(leader.id, gameId, (err, team) => {
+                        //... and team members...
+                        getModel().listTeamMembers(teamId, (err, members) => {
+                            //... and a team leader
+                            team.leader = leader;
+                            return res.render('createteamform', {
+                                message: errMsg,
+                                game: game,
+                                isleader: true,
+                                player: req.player,
+                                team: team,
+                                members: members
+                            });
+                        });
+                    });
+                    //update teamplayer and redirect to teamgames
+                } else {
+                    const teamplayerId = req.params.teamplayerid;
+                    getModel().read(KIND_TEAM_PLAYER, teamplayerId, (err, teamplayer) => {
+                        teamplayer.player_id = teamMember.id;
+                        getModel().update(KIND_TEAM_PLAYER, teamplayerId, teamplayer, (err, cb) => {
+                            return res.redirect('/teamgames');
+                        });
+                    });
+                }
+            });
+        });
+    }
+);
+
+function getPlayerForTeam(schoolmail, game, callback) {
+    //check if player exists
+    getModel().getPlayerFromSchoolmail(schoolmail, null, null, (err, players) => {
+        const player = players[0];
+        if (!player) {
+            callback(null, null, `Player with schoolmail ${schoolmail} not found. Only registered players can be 
+                                added to a team.`);
+        } else if (player.token !== 'verified') {
+            callback(null, null, `Player with schoolmail ${schoolmail} not yet verified. Only verified 
+                                    players can be added to a team.`)
+        } else {
+            getModel().getTeamFromPlayerForGame(player.id, game.id, (err, team) => {
+                if (team !== null) {
+                    callback(null, null, `Player with schoolmail ${schoolmail} already is in a team for ${game.name}. 
+                                            Players can only be in one team per game.`)
+                } else {
+                    callback(null, player, null);
+                }
+            });
+        }
+    });
+}
 
 router.get('/verifiedconfirm', (req, res, next) => {
     return res.render('verifiedconfirm');
