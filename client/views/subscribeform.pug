@@ -36,7 +36,10 @@ block content
                                 i.glyphicon.glyphicon-send
                                 span &nbsp;#{actiontournament}
                     else if actiontournament === 'Subscriptions'
-                        p Only leaders of teams for #{tournament.game.name} can subscribe to this tournament
+                        p Only leaders of teams for <code>#{tournament.game.name}</code> can subscribe to this tournament.
+                        a.btn.btn-lg.btn-warning(href=`/${tournament.game.id}/createteam`)
+                            i.glyphicon.glyphicon-list-alt
+                            span &nbsp; Team up!
 
         h2 Subscribed
         if attendees.length
