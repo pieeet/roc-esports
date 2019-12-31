@@ -2,7 +2,7 @@
 
 
 function getModel() {
-    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
+    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`);
 }
 
 

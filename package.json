@@ -47,8 +47,6 @@
     "passport-google-oauth20": "1.0.0",
     "prompt": "1.0.0",
     "pug": "2.0.0-beta11",
-    "socket.io": "^2.2.0",
-    "socket.io-client": "^2.2.0",
     "uglify-js": "3.3.12",
     "yes-https": "0.0.4"
   },

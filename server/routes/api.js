@@ -9,8 +9,7 @@ router.use(cors());
 
 
 function getModel() {
-    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
-    // return require('../data/model-datastore'); // doet hetzelfde
+    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`);
 }
 
 // Set Content-Type for all responses for these routes

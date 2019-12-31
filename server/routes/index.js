@@ -44,8 +44,7 @@ router.use((req, res, next) => {
 
 // get database middleware
 function getModel() {
-    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`); // zie voorbeeld Google
-    // return require('../data/model-datastore'); // doet hetzelfde
+    return require(`../data/model-${require('../../config').get('DATA_BACKEND')}`);
 }
 
 /* GET home page. */

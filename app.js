@@ -17,10 +17,6 @@ const apiRouter = require('./server/routes/api');
 const app = express();
 const config = require('./config');
 
-// Socket .io
-// var server = require('http').Server(app);
-// var io = require('socket.io')(server);
-
 // view engine setup
 app.set('views', path.join('client/views'));
 app.set('view engine', 'pug');
@@ -46,21 +42,6 @@ const sessionConfig = {
     secret: config.get('SECRET'),
     signed: true
 };
-// from google tutorial NOT WORKING
-// In production use the Memcache instance to store session data,
-// otherwise fallback to the default MemoryStore in development.
-// if (config.get('NODE_ENV') === 'production' && config.get('MEMCACHE_URL')) {
-//   if (config.get('MEMCACHE_USERNAME') && (config.get('MEMCACHE_PASSWORD'))) {
-//     sessionConfig.store = new MemcachedStore({
-//       servers: [config.get('MEMCACHE_URL')],
-//       username: config.get('MEMCACHE_USERNAME'),
-//       password: config.get('MEMCACHE_PASSWORD')});
-//   } else {
-//     sessionConfig.store = new MemcachedStore({
-//       servers: [config.get('MEMCACHE_URL')]
-//     });
-//   }
-// }
 
 app.use(session(sessionConfig));
 // [END session]
@@ -75,22 +56,7 @@ app.use('/', indexRouter);
 app.use('/admin', adminRouter);
 app.use('/api', apiRouter);
 
-// Socket.IO Chat 
-// app.get('/messages', (req, res) => {
-//     Message.find({},(err, messages)=> {
-//       res.send(messages);
-//     })
-//   })
-//
-//   app.post('/messages', (req, res) => {
-//     var message = new Message(req.body);
-//     message.save((err) =>{
-//       if(err)
-//         sendStatus(500);
-//       res.sendStatus(200);
-//     })
-//   })
-//
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     next(createError(404));
@@ -108,11 +74,6 @@ app.use(function(err, req, res, next) {
 });
 
 if (module === require.main) {
-
-    // Socket.IO Connect
-    // io.on('connection', () =>{
-    //     console.log('a user is connected')
-    //    })
 
     // Create HTTP server on config port / 3000
     const server = app.listen(config.get('PORT') || '3000', () => {
