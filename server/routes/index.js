@@ -49,7 +49,8 @@ function getModel() {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.render('index', {title: 'roc-dev esports'});
+    res.redirect('/tournaments');
+    // res.render('index', {title: 'roc-dev esports'});
 });
 
 /* GET subscribe page*/
