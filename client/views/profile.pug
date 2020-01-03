@@ -36,8 +36,12 @@ block content
                             .col-md-8
                                 select#school.form-control(name='school' required)
                                     option(value='') Choose...
-                                    option(value='ROC-Flevoland' selected) ROC-Flevoland
-
+                                    each school in schools
+                                        - var isSchool = school.id === player.school
+                                        if isSchool
+                                            option(value=school.id selected) #{school.Naam}
+                                        else
+                                            option(value=school.id) #{school.Naam}
                         .form-group
                             label.col-md-4(for="opleiding") Study (e.g. Mediavormgever)
                             .col-md-8

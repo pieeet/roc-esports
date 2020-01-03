@@ -103,32 +103,42 @@ router.get('/tournaments', (req, res, next) => {
 
 
 router.get('/profile', oauth2.required, (req, res, next) => {
-    // get the player profile associated with the logged in user
-    getModel().getPlayer(req.user.email, null, null, (err, ent) => {
+    // get schools for select item
+    getModel().listSchools(null, null, (err, cb) => {
         if (err) {
             next(err);
             return;
         }
-        // the query returns a list with one entity
-        let player = ent[0];
-        if (!player) {
-            player = {};
-        } else {
-            if (player.token === "verified") {
-                player.verified = true;
+        const schools = cb;
+        console.log(cb);
+        // get the player profile associated with the logged in user
+        getModel().getPlayer(req.user.email, null, null, (err, ent) => {
+            if (err) {
+                next(err);
+                return;
             }
-        }
-        let actionPlayer;
-        // if existing player: set action update
-        // else: set action create
-        if (player.id) {
-            actionPlayer = "Update";
-        } else {
-            actionPlayer = "Create";
-        }
-        res.render('profile', {
-            player: player,
-            action: actionPlayer
+            // the query returns a list with one entity
+            let player = ent[0];
+            if (!player) {
+                player = {};
+            } else {
+                if (player.token === "verified") {
+                    player.verified = true;
+                }
+            }
+            let actionPlayer;
+            // if existing player: set action update
+            // else: set action create
+            if (player.id) {
+                actionPlayer = "Update";
+            } else {
+                actionPlayer = "Create";
+            }
+            res.render('profile', {
+                player: player,
+                action: actionPlayer,
+                schools: schools
+            });
         });
     });
 });

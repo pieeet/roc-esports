@@ -126,9 +126,6 @@ function sanitizeProfileFormData(data) {
     return cleanData;
 }
 
-
-
-
 module.exports = {
     prettyTime,
     prettyDate,

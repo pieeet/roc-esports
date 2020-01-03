@@ -11,6 +11,7 @@ const KIND_PLAYER = "Player";
 const KIND_PLAYER_TOURNAMENT = "Player_Tournament";
 const KIND_TEAM = "Team";
 const KIND_TEAM_PLAYER = "Team_Player";
+const KIND_SCHOOL = "School";
 
 // [END config]
 
@@ -183,6 +184,18 @@ function listTournaments(limit, token, startDate, cb) {
         }
         const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
         cb(null, entities.map(fromDatastore), hasMore);
+    });
+}
+
+function listSchools(limit, token, cb) {
+    const q = ds.createQuery([KIND_SCHOOL]).limit(limit).start(token);
+    ds.runQuery(q, (err, schools, nextQuery) => {
+        if (err) {
+            cb(err);
+            return;
+        }
+        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
+        cb(null, schools.map(fromDatastore, hasMore))
     });
 }
 
@@ -424,7 +437,8 @@ module.exports = {
     schoolmailAvailable,
     playernameAvailable,
     getTeamFromPlayerForGame,
-    teamNameAvailableForGame
+    teamNameAvailableForGame,
+    listSchools
 
 };
 // [END exports]
