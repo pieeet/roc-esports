@@ -24,6 +24,23 @@ label, input, .media, form {
 .floating-list h5 {
   margin-top: 0;
 }
+.tournaments .media {
+  width: 100%;
+  max-width: 375px;
+  float: left;
+  margin-right: 10px;
+  margin-top: 10px;
+  border: 1px solid grey;
+  border-radius: 5px;
+  min-height:275px;
+  position: relative;
+}
+
+.tournaments .media .btn {
+  position: absolute;
+  top: 210px;
+}
+
 .media-left img {
   width: 90px;
   height: 90px;

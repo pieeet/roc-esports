@@ -81,15 +81,11 @@ router.get('/tournaments', (req, res, next) => {
                     tournament.game = game;
                     tournamentslist.push(tournament);
 
-                    //
-
-
-
                     // datastore sort function not always working (due to async?)
                     if (tournamentslist.length === tournaments.length) {
                         tournamentslist.sort(function (a, b) {
-                            return (a.starttime > b.starttime) ? -1 :
-                                ((b.starttime > a.starttime) ? 1 : 0);
+                            return (a.starttime < b.starttime) ? -1 :
+                                ((b.starttime < a.starttime) ? 1 : 0);
                         });
                         res.render('subscribelist.pug', {
                             tournaments: tournamentslist
@@ -604,8 +600,8 @@ router.post('/:game/createteam',
                                     // on attendees list page
                                     teamData.playername = data.name;
                                     // for a team opleiding === school.
-                                    teamData.opleiding = data.school;
-                                    teamData.school = data.school;
+                                    // teamData.opleiding = data.school;
+                                    // teamData.school = data.school;
                                     if (req.file && req.file.cloudStoragePublicUrl) {
                                         teamData.imageUrl = req.file.cloudStoragePublicUrl;
                                     }
