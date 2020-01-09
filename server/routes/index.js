@@ -97,7 +97,6 @@ router.get('/tournaments', (req, res, next) => {
     });
 });
 
-
 router.get('/profile', oauth2.required, (req, res, next) => {
     // get schools for select item
     getModel().listSchools(null, null, (err, cb) => {
@@ -461,7 +460,7 @@ router.post('/:tournament/subscribe',
     verified.required,
     (req, res, next) => {
         const data = req.body;
-         // see verified.required
+        // see verified.required
         data.player_id = req.player.id;
         // if team game replace player_id with team_id
         if (data.team_id) data.player_id = data.team_id.valueOf();
@@ -744,6 +743,27 @@ router.post('/:teamplayerid/replaceteammember',
         });
     }
 );
+
+router.post('/:teamid/deleteteam',
+    oauth2.required,
+    verified.required, (req, res, next) => {
+        const teamId = req.params.teamid;
+        getModel().deleteTeam(teamId, (err, teamplayers) => {
+            if (err) {
+                next(err);
+            }
+            for (let i = 0; i < teamplayers.length; i++) {
+                getModel().delete(KIND_TEAM_PLAYER, teamplayers[i].id, (err, cb) => {
+                    if (err) {
+                        next(err);
+                    }
+                });
+                if (i === teamplayers.length - 1) {
+                    return res.redirect('/teamgames');
+                }
+            }
+        });
+    });
 
 function getPlayerForTeam(schoolmail, game, callback) {
     //check if player exists

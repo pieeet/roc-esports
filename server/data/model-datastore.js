@@ -66,7 +66,6 @@ function create(table, data, cb) {
     update(table, null, data, cb);
 }
 
-
 function _delete(table, id, cb) {
     const key = ds.key([table, parseInt(id, 10)]);
     ds.delete(key, cb);
@@ -249,7 +248,6 @@ function getSubscription(tournament, player, cb) {
     });
 }
 
-
 function getAttendees(tournamentId, isTeamGame, cb) {
     let attendees = [];
     const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
@@ -369,7 +367,6 @@ function teamNameAvailableForGame(teamname, gameId, cb) {
     });
 }
 
-
 function getTeamFromPlayerForGame(playerid, gameId, cb) {
     const q = ds.createQuery([KIND_TEAM_PLAYER]).filter('player_id', '=', playerid);
     ds.runQuery(q, (err, ents) => {
@@ -414,6 +411,29 @@ function listTeamMembers(teamid, cb) {
     });
 }
 
+function deleteTeam(teamId, cb) {
+
+    const q = ds.createQuery(KIND_TEAM_PLAYER).filter('team_id', '=', teamId);
+    ds.runQuery(q, (err, ents) => {
+        for (let i = 0; i < ents.length; i++) {
+            ents[i] = fromDatastore(ents[i]);
+        }
+        // set property deleted in team so we don't lose the games they've played
+        read(KIND_TEAM, teamId, (err, team) => {
+            const id = team.id.valueOf();
+            delete team.id;
+            team.deleted = true;
+            update(KIND_TEAM, id, team, (err, res) => {
+                if (err) {
+                    cb(err);
+                }
+                cb(null, ents);
+            });
+        });
+    });
+
+}
+
 
 // [START exports]
 module.exports = {
@@ -438,7 +458,8 @@ module.exports = {
     playernameAvailable,
     getTeamFromPlayerForGame,
     teamNameAvailableForGame,
-    listSchools
+    listSchools,
+    deleteTeam
 
 };
 // [END exports]
