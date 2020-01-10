@@ -15,6 +15,7 @@ const KIND_SCHOOL = "School";
 
 // [END config]
 
+// add id property to object from key
 function fromDatastore(obj) {
     obj.id = obj[Datastore.KEY].id;
     return obj;
