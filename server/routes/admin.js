@@ -306,13 +306,29 @@ router.get('/:tournament/checkin', oauth2.required, adminauth.required, (req, re
                 });
 
                 res.render('admin/checkinlist', {
-                    attendees: attendees
+                    attendees: attendees,
+                    tournamentId: tournamentId
                 });
             });
         });
     });
+});
+
+router.get('/:tournament/remove-no-show', oauth2.required, adminauth.required, (req, res, next) => {
+    const tournamentId = req.params.tournament;
+    getModel().removeNoShows(tournamentId, (err, cb) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        if (cb === 200) {
+            res.redirect(`/admin/${tournamentId}/checkin`)
+        }
+    });
+
 
 });
+
 
 router.post('/:tournament/checkin', oauth2.required, adminauth.required, (req, res, next) => {
     const data = req.body;

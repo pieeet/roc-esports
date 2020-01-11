@@ -3,26 +3,34 @@ extends layoutadmin.pug
 
 block content
     .container.content
-        h1= 'Check-in players'
-            .floating-list
-                each attendee in attendees
-                    .media
-                        .media-left
-                            img.avatar(src=attendee.imageUrl ||
-                            "/img/male-profile-pic-placeholder.png")
-                        .media-body
-                            h5= attendee.playername
-                            p.opleiding= attendee.schoolmail
-                            form(method='POST')
-                                .form-group.hidden
-                                    input(name='subscriptionid' value=`${attendee.subscriptionid}`)
-                                .form-group
-                                    if attendee.checkedin
-                                        button.btn.btn-sm.btn-danger(type='submit')
-                                            i.glyphicon.glyphicon-remove
-                                    else
-                                        button.btn.btn-sm.btn-success(type='submit')
-                                            i.glyphicon.glyphicon-ok
+        .row
+            .col-md-12
+            h1= 'Check-in players'
+        .row
+            .col-md-12
+                .floating-list
+                    each attendee in attendees
+                        .media
+                            .media-left
+                                img.avatar(src=attendee.imageUrl ||
+                                "/img/male-profile-pic-placeholder.png")
+                            .media-body
+                                h5= attendee.playername
+                                p.opleiding= attendee.schoolmail
+                                form(method='POST')
+                                    .form-group.hidden
+                                        input(name='subscriptionid' value=`${attendee.subscriptionid}`)
+                                    .form-group
+                                        if attendee.checkedin
+                                            button.btn.btn-sm.btn-danger(type='submit')
+                                                i.glyphicon.glyphicon-remove
+                                        else
+                                            button.btn.btn-sm.btn-success(type='submit')
+                                                i.glyphicon.glyphicon-ok
+        .row
+            .col-md-4
+            .col-md-8
+                a.btn.btn-lg.btn-danger(href=`/admin/${tournamentId}/remove-no-show`) Remove no-shows
 
     script(type='text/javascript').
         $(document).ready(

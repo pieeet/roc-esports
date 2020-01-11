@@ -1,130 +1,142 @@
 html {
-  overflow-y: scroll;
+    overflow-y: scroll;
 }
+
 body {
-  margin-bottom: 2em;
-  font-size: 16px;
+    margin-bottom: 2em;
+    font-size: 16px;
 }
+
 label, input, .media, form {
-  padding: .5em;
-  width: 100%;
+    padding: .5em;
+    width: 100%;
 }
+
 .media form {
-  padding: 0;
+    padding: 0;
 }
+
 .floating-list .media {
-  width: 220px;
-  float: left;
-  margin-right: 10px;
-  margin-top: 10px;
+    width: 220px;
+    float: left;
+    margin-right: 10px;
+    margin-top: 10px;
 }
+
 .floating-list p {
-  font-size: 11px;
+    font-size: 11px;
 }
+
 .floating-list h5 {
-  margin-top: 0;
+    margin-top: 0;
 }
+
 .tournaments .media {
-  width: 100%;
-  max-width: 375px;
-  float: left;
-  margin-right: 10px;
-  margin-top: 10px;
-  border: 1px solid grey;
-  border-radius: 5px;
-  min-height:275px;
-  position: relative;
+    width: 100%;
+    max-width: 375px;
+    float: left;
+    margin-right: 10px;
+    margin-top: 10px;
+    border: 1px solid grey;
+    border-radius: 5px;
+    min-height: 275px;
+    position: relative;
 }
 
 .tournaments .media .btn {
-  position: absolute;
-  top: 210px;
+    position: absolute;
+    top: 210px;
 }
 
 .media-left img {
-  width: 90px;
-  height: 90px;
-  margin-top: 10px;
-  margin-right: 10px;
+    width: 90px;
+    height: 90px;
+    margin-top: 10px;
+    margin-right: 10px;
 }
+
 img.avatar {
-  width: 30px;
-  height: 30px;
-  margin-top: 0;
+    width: 30px;
+    height: 30px;
+    margin-top: 0;
 }
+
 .btn {
     margin-left: 10px;
 }
+
 .content {
-  margin-top: 70px;
+    margin-top: 70px;
 }
 
 /************** Callouts *************************/
 
 .bs-callout {
-  border: 1px solid #eee;
-  border-left-width: 5px;
-  border-radius: 3px;
-  margin: 20px 0;
-  padding: 20px;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+    margin: 20px 0;
+    padding: 20px;
 }
 
 .bs-callout code {
-  border-radius: 3px;
+    border-radius: 3px;
 }
 
 .bs-callout + .bs-callout {
-  margin-top: -5px;
+    margin-top: -5px;
 }
 
 .bs-callout-danger {
-  border-left-color: #d9534f;
+    border-left-color: #d9534f;
 }
 
 .bs-callout-danger h4 {
-  color: #d9534f;
+    color: #d9534f;
 }
 
 .bs-callout-danger h4.danger {
-  color: #d9534f;
+    color: #d9534f;
 }
 
 .bs-callout-warning {
-  border-left-color: #f0ad4e;
+    border-left-color: #f0ad4e;
 }
 
 .bs-callout-warning h4 {
-  color: #f0ad4e;
+    color: #f0ad4e;
 }
 
 .bs-callout-info {
-  border-left-color: #5bc0de;
+    border-left-color: #5bc0de;
 }
 
 .bs-callout-info h4 {
-  color: #5bc0de;
+    color: #5bc0de;
 }
 
 .bs-callout-succes {
-  border-left-color: #688B37;
+    border-left-color: #688B37;
 }
 
 .bs-callout-succes h4 {
-  color: #688B37;
+    color: #688B37;
 }
 
 .bs-callout-succes h4.succes {
-  color: #688B37;
+    color: #688B37;
 }
 
 
 /* [START profileformconfirm] */
 figure img {
-  width: 100%;
-  overflow: hidden;
+    width: 100%;
+    overflow: hidden;
 }
+
 figcaption {
-  font-style: italic;
+    font-style: italic;
 }
+
 /* [END profileformconfirm] */
 

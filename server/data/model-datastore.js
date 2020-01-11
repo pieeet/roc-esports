@@ -295,6 +295,27 @@ function getAttendees(tournamentId, isTeamGame, cb) {
     });
 }
 
+function removeNoShows(tournamentId, result) {
+    const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
+        .filter('tournament_id', '=', tournamentId);
+    ds.runQuery(q, (err, ents, nextQuery) => {
+        for (let i = 0; i < ents.length; i++) {
+            ents[i] = fromDatastore(ents[i]);
+            const id = ents[i].id;
+            if (!ents[i].checkedin) {
+                _delete(KIND_PLAYER_TOURNAMENT, id, (err, cb) => {
+                    if (err) {
+                        cb(err);
+                    }
+                });
+            }
+            if (i === ents.length - 1) {
+                result(null, 200);
+            }
+        }
+    });
+}
+
 function verifyEmail(email, token, cb) {
     const q = ds.createQuery([KIND_PLAYER])
         .filter('schoolmail', '=', email)
@@ -460,7 +481,8 @@ module.exports = {
     getTeamFromPlayerForGame,
     teamNameAvailableForGame,
     listSchools,
-    deleteTeam
+    deleteTeam,
+    removeNoShows
 
 };
 // [END exports]
