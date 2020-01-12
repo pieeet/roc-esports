@@ -355,6 +355,22 @@ router.post('/:tournament/checkin', oauth2.required, adminauth.required, (req, r
     });
 });
 
+router.get('/getemails',oauth2.required, adminauth.required,  (req,res,next) => {
+    getModel().listAdmins(null, null, 0,(err, players, nextQuery) => {
+        if (err) {
+            next(err);
+            return;
+        }
+        let emails = [];
+        for (let i = 0; i < players.length; i++) {
+            emails.push(players[i].email);
+            emails.push(players[i].schoolmail);
+        }
+        res.write(emails.toString());
+        res.end();
+    });
+});
+
 
 // [END TOURNAMENTS]
 module.exports = router;

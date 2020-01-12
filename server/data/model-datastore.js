@@ -219,23 +219,6 @@ function isAdmin(email, minrole, cb) {
     });
 }
 
-function listPlayers(limit, token, minrole, cb) {
-    const q = ds.createQuery([KIND_PLAYER])
-        .limit(limit)
-        .filter('role', '>=', minrole)
-        .order('role')
-        .order('playername')
-        .start(token);
-    ds.runQuery(q, (err, players, nextQuery) => {
-        if (err) {
-            cb(err);
-            return;
-        }
-        const hasMore = nextQuery.moreResults !== Datastore.NO_MORE_RESULTS ? nextQuery.endCursor : false;
-        cb(null, players.map(fromDatastore), hasMore);
-    })
-}
-
 function getSubscription(tournament, player, cb) {
     const q = ds.createQuery([KIND_PLAYER_TOURNAMENT])
         .filter('player_id', '=', player)
@@ -465,7 +448,6 @@ module.exports = {
     delete: _delete,
 
     listAdmins,
-    listPlayers,
     listGames,
     listTournaments,
     listTeamMembers,
